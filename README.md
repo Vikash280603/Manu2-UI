@@ -49,3 +49,79 @@ src/
 
 # Testing the updates once again
 ## Another updates
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+src/
+│
+├── auth/                                  # Common authentication logic/pages
+│   ├── LoginPage.jsx
+│   ├── SignupPage.jsx
+│   ├── authApi.js
+│   └── AuthProvider.jsx                   # Context for user, role, auth state, etc.
+│
+├── layout/                                # Layouts (Navbar, Sidebar, App shell)
+│   ├── MainLayout.jsx                     # Main layout for app (includes Navbar/Sidebar)
+│   ├── Navbar.jsx                         # Top nav bar (with module/dashboard links)
+│   └── Sidebar.jsx                        # Sidebar (optional; for module/module switching)
+│
+├── modules/                               # All business logic modules organized here
+│   ├── product-bom/
+│   │   ├── pages/
+│   │   │   └── ProductList.jsx            # Main page (landing page) after Product BOM login
+│   │   ├── components/
+│   │   ├── api/
+│   │   ├── utils/
+│   │   ├── hooks/
+│   │   └── types/
+│   │
+│   ├── inventory/
+│   │   ├── pages/
+│   │   │   └── InventoryList.jsx          # Main page for Inventory Management
+│   │   ├── components/
+│   │   ├── api/
+│   │   ├── utils/
+│   │   ├── hooks/
+│   │   └── types/
+│   │
+│   ├── quality/
+│   │   ├── pages/
+│   │   │   └── QualityCheckList.jsx       # Main QC landing page
+│   │   ├── components/
+│   │   ├── api/
+│   │   ├── utils/
+│   │   ├── hooks/
+│   │   └── types/
+│   │
+│   └── dashboard/
+│       ├── pages/
+│       │   └── Dashboard.jsx              # Analytics & reports main page
+│       ├── components/
+│       ├── api/
+│       ├── utils/
+│       ├── hooks/
+│       └── types/
+│
+├── HomePage.jsx                           # Public home/landing page (`/`)
+│
+├── routes/
+│   └── AppRoutes.jsx                      # All route definitions, role-based redirects
+│
+├── constants/
+│   ├── roles.js                           # Role definitions/role-access logic
+│   └── routePaths.js                      # Central route path constants (improves refactoring)
+│
+├── utils/                                 # Shared utilities (formatting, validation)
+│   └── common.js
+│
+├── context/                               # Additional React context providers if needed
+│   └── UserContext.jsx
+│
+├── App.jsx                                # Root of app: wraps in providers, sets up Layouts/Routing
+├── index.jsx                              # Entry point
+└── styles/                                # App-wide/global styles
+    └── main.css
