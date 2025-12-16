@@ -1,23 +1,22 @@
 
 [
-  {
-    "Id": 301,
-    "Name": "Steel Rod",
-    "quantity": 10
-  },
-  {
-    "Id": 302,
-    "Name": "Aluminum Sheet",
-    "quantity": 5
-  },
-  {
-    "Id": 303,
-    "Name": "Plastic Cover",
-    "quantity": 20
-  },
-  {
-    "Id": 304,
-    "Name": "Copper Wire",
-    "quantity": 50
-  }
-]
+  { "Id": 301, "Name": "Steel Rod", "quantity": 10 },
+  { "Id": 302, "Name": "Aluminum Sheet", "quantity": 5 },
+  { "Id": 303, "Name": "Plastic Cover", "quantity": 20 },
+  { "Id": 304, "Name": "Copper Wire", "quantity": 50 },
+  { "Id": 305, "Name": "Iron Plate", "quantity": 15 },
+  { "Id": 306, "Name": "Brass Tube", "quantity": 8 },
+  { "Id": 307, "Name": "Glass Panel", "quantity": 12 },
+  { "Id": 308, "Name": "Rubber Gasket", "quantity": 30 },
+  { "Id": 309, "Name": "Wooden Plank", "quantity": 25 },
+  { "Id": 310, "Name": "Steel Bolt", "quantity": 100 },
+  { "Id": 311, "Name": "Aluminum Rod", "quantity": 18 },
+  { "Id": 312, "Name": "Plastic Pipe", "quantity": 40 },
+  { "Id": 313, "Name": "Copper Sheet", "quantity": 22 },
+  { "Id": 314, "Name": "Iron Rod", "quantity": 35 },
+  { "Id": 315, "Name": "Brass Plate", "quantity": 14 },
+  { "Id": 316, "Name": "Glass Bottle", "quantity": 60 },
+  { "Id": 317, "Name": "Rubber Hose", "quantity": 45 },
+  { "Id": 318, "Name": "Wooden Beam", "quantity": 28 },
+  { "Id": 319, "Name": "Steel Nut", "quantity": 200 },
+   { "Id": 320, "Name": "Aluminum Foil", "quantity": 75 }
