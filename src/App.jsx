@@ -6,6 +6,7 @@ import './App.css'
 import HomePage from './HomePage';
 import LoginPage from './auth/LoginPage';
 import SignupPage from './auth/SignupPage';
+import AddProduct from './modules/product-bom/pages/AddProduct';
 
 
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} /> 
       </Routes>
+
     </Router>
   )
 }
