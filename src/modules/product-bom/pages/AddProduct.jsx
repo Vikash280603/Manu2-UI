@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { Label } from "@mui/icons-material";
 import {Box, Typography, Paper, TextField, Select, MenuItem, Button, InputLabel, FormControl} from "@mui/material"
 import { useState } from "react";
@@ -78,10 +78,5 @@ export default function AddProduct(){
         </Box>
     );
 }
-=======
-export default function AddProduct(){
-    return(
-        <h1>Add Product</h1>
-    )
-}
->>>>>>> 0967f204ab52ed89ef591304509d8abaab35130a
+
+
