@@ -6,7 +6,9 @@ import './App.css'
 import HomePage from './HomePage';
 import LoginPage from './auth/LoginPage';
 import SignupPage from './auth/SignupPage';
-
+import Inventory from './modules/Inventory/Pages/InventoryList';
+import WorkOrderList from './modules/ProductionScheduling/WorkOrderList';
+import QualityCheckList from './modules/QualityControl/QualityCheckList';
 
 
 function App() {
@@ -19,6 +21,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} /> 
+        <Route path="/inventory" element={<Inventory/>}/>
+        <Route path="/productionscheduling" element={<WorkOrderList/>}/>
+        <Route path="/quality-checks" element={<QualityCheckList/>}/>
       </Routes>
     </Router>
   )
