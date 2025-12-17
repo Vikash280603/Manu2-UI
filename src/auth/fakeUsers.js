@@ -18,10 +18,10 @@ export const users = [
     role: "qc_manager"
   },
   {
-    name: " Dashboard User",
-    email: "dashboard@company.com",
-    password: "du123",
-    role: "dashboard_user"
+    name: "Production Scheduler",
+    email: "Scheduler@company.com",
+    password: "Scheduler123",
+    role: "Production_Scheduler"
   },
   {
     name: "Quality Control",
