@@ -1,6 +1,5 @@
-export default function WorkOrderList()
-{
+export default function WorkOrderList(){
     return(
-        <h1>The page is under Development</h1>
+ <h1>This page is currently under development</h1>
     )
 }
