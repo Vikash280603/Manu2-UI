@@ -6,11 +6,15 @@ import './App.css'
 import HomePage from './HomePage';
 import LoginPage from './auth/LoginPage';
 import SignupPage from './auth/SignupPage';
+
+import AddProduct from './modules/product-bom/pages/AddProduct';
+
 import Inventory from './modules/Inventory/Pages/InventoryList';
 import WorkOrderList from './modules/ProductionScheduling/WorkOrderList';
 import QualityCheckList from './modules/QualityControl/QualityCheckList';
 import ProtectedRoute from './auth/ProtectedRoutes';
 import ProductRoutes from './routes/productRoutes';
+
 
 
 
@@ -34,6 +38,7 @@ function App() {
 
         }/>
       </Routes>
+
     </Router>
   )
 }
