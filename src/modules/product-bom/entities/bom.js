@@ -1,52 +1,62 @@
 
+export const boms = 
+
 [
-  { "BOMID": 1,  "ID": 1, "MaterialName": "Steel Rod",      "Quantity": 10 },
-  { "BOMID": 1,  "ID": 2, "MaterialName": "Steel Rod",      "Quantity": 10 },
-  { "BOMID": 2,  "ID": 1, "MaterialName": "Aluminum Sheet", "Quantity": 5  },
-  { "BOMID": 2,  "ID": 2, "MaterialName": "Aluminum Sheet", "Quantity": 5  },
+  { "BOMID": 1,  "id": 1,  "materialName": "Steel Rod",            "quantity": 10 },
+  { "BOMID": 1,  "id": 2,  "materialName": "Steel Rod",            "quantity": 10 },
+  { "BOMID": 2,  "id": 1,  "materialName": "Aluminum Sheet",       "quantity": 5  },
+  { "BOMID": 2,  "id": 2,  "materialName": "Aluminum Sheet",       "quantity": 5  },
 
-  { "BOMID": 3,  "ID": 3, "MaterialName": "Steel Rod",      "Quantity": 12 },
-  { "BOMID": 3,  "ID": 4, "MaterialName": "Steel Rod",      "Quantity": 12 },
-  { "BOMID": 4,  "ID": 3, "MaterialName": "Plastic Cover",  "Quantity": 8  },
-  { "BOMID": 4,  "ID": 4, "MaterialName": "Plastic Cover",  "Quantity": 8  },
+  { "BOMID": 3,  "id": 3,  "materialName": "Copper Wire",          "quantity": 50 },
+  { "BOMID": 3,  "id": 4,  "materialName": "Copper Wire",          "quantity": 50 },
+  { "BOMID": 4,  "id": 3,  "materialName": "Plastic Cover",        "quantity": 20 },
+  { "BOMID": 4,  "id": 4,  "materialName": "Plastic Cover",        "quantity": 20 },
 
-  { "BOMID": 5,  "ID": 5, "MaterialName": "Steel Rod",      "Quantity": 15 },
-  { "BOMID": 5,  "ID": 6, "MaterialName": "Steel Rod",      "Quantity": 15 },
-  { "BOMID": 6,  "ID": 5, "MaterialName": "Copper Wire",    "Quantity": 35 },
-  { "BOMID": 6,  "ID": 6, "MaterialName": "Copper Wire",    "Quantity": 35 },
+  { "BOMID": 5,  "id": 5,  "materialName": "Cardboard Sheet",      "quantity": 30 },
+  { "BOMID": 5,  "id": 6,  "materialName": "Cardboard Sheet",      "quantity": 30 },
+  { "BOMID": 6,  "id": 5,  "materialName": "Plastic Wrap",         "quantity": 40 },
+  { "BOMID": 6,  "id": 6,  "materialName": "Plastic Wrap",         "quantity": 40 },
 
-  { "BOMID": 7,  "ID": 7, "MaterialName": "Steel Rod",      "Quantity": 9  },
-  { "BOMID": 7,  "ID": 8, "MaterialName": "Steel Rod",      "Quantity": 9  },
-  { "BOMID": 8,  "ID": 7, "MaterialName": "Aluminum Sheet", "Quantity": 7  },
-  { "BOMID": 8,  "ID": 8, "MaterialName": "Aluminum Sheet", "Quantity": 7  },
+  { "BOMID": 7,  "id": 7,  "materialName": "Cement Bag",           "quantity": 25 },
+  { "BOMID": 7,  "id": 8,  "materialName": "Cement Bag",           "quantity": 25 },
+  { "BOMID": 8,  "id": 7,  "materialName": "Steel Rebar",          "quantity": 15 },
+  { "BOMID": 8,  "id": 8,  "materialName": "Steel Rebar",          "quantity": 15 },
 
-  { "BOMID": 9,  "ID": 9, "MaterialName": "Steel Rod",      "Quantity": 20 },
-  { "BOMID": 9,  "ID": 10, "MaterialName": "Steel Rod",      "Quantity": 20 },
-  { "BOMID": 10, "ID": 9, "MaterialName": "Plastic Cover",  "Quantity": 10 },
-  { "BOMID": 10, "ID": 10, "MaterialName": "Plastic Cover",  "Quantity": 10 },
+  { "BOMID": 9,  "id": 9,  "materialName": "Tool Steel Bar",       "quantity": 12 },
+  { "BOMID": 9,  "id": 10, "materialName": "Tool Steel Bar",       "quantity": 12 },
+  { "BOMID": 10, "id": 9,  "materialName": "Fastener Set",         "quantity": 60 },
+  { "BOMID": 10, "id": 10, "materialName": "Fastener Set",         "quantity": 60 },
 
-  { "BOMID": 11, "ID": 11, "MaterialName": "Steel Rod",      "Quantity": 11 },
-  { "BOMID": 11, "ID": 12, "MaterialName": "Steel Rod",      "Quantity": 11 },
-  { "BOMID": 12, "ID": 11, "MaterialName": "Copper Wire",    "Quantity": 30 },
-  { "BOMID": 12, "ID": 12, "MaterialName": "Copper Wire",    "Quantity": 30 },
+  { "BOMID": 11, "id": 11, "materialName": "Measuring Tape",       "quantity": 20 },
+  { "BOMID": 11, "id": 12, "materialName": "Measuring Tape",       "quantity": 20 },
+  { "BOMID": 12, "id": 11, "materialName": "Bubble Level Vial",    "quantity": 14 },
+  { "BOMID": 12, "id": 12, "materialName": "Bubble Level Vial",    "quantity": 14 },
 
-  { "BOMID": 13, "ID": 13, "MaterialName": "Steel Rod",      "Quantity": 13 },
-  { "BOMID": 13, "ID": 14, "MaterialName": "Steel Rod",      "Quantity": 13 },
-  { "BOMID": 14, "ID": 13, "MaterialName": "Aluminum Sheet", "Quantity": 9  },
-  { "BOMID": 14, "ID": 14, "MaterialName": "Aluminum Sheet", "Quantity": 9  },
+  { "BOMID": 13, "id": 13, "materialName": "Chrome Vanadium Steel","quantity": 18 },
+  { "BOMID": 13, "id": 14, "materialName": "Chrome Vanadium Steel","quantity": 18 },
+  { "BOMID": 14, "id": 13, "materialName": "Ratchet Pawl Set",     "quantity": 8  },
+  { "BOMID": 14, "id": 14, "materialName": "Ratchet Pawl Set",     "quantity": 8  },
 
-  { "BOMID": 15, "ID": 15, "MaterialName": "Plastic Cover",  "Quantity": 14 },
-  { "BOMID": 15, "ID": 16, "MaterialName": "Plastic Cover",  "Quantity": 14 },
-  { "BOMID": 16, "ID": 15, "MaterialName": "Copper Wire",    "Quantity": 48 },
-  { "BOMID": 16, "ID": 16, "MaterialName": "Copper Wire",    "Quantity": 48 },
+  { "BOMID": 15, "id": 15, "materialName": "Cast Iron Jaw",        "quantity": 6  },
+  { "BOMID": 15, "id": 16, "materialName": "Cast Iron Jaw",        "quantity": 6  },
+  { "BOMID": 16, "id": 15, "materialName": "Nylon Bristles",       "quantity": 100 },
+  { "BOMID": 16, "id": 16, "materialName": "Nylon Bristles",       "quantity": 100 },
 
-  { "BOMID": 17, "ID": 17, "MaterialName": "Steel Rod",      "Quantity": 16 },
-  { "BOMID": 17, "ID": 18, "MaterialName": "Steel Rod",      "Quantity": 16 },
-  { "BOMID": 18, "ID": 17, "MaterialName": "Copper Wire",    "Quantity": 38 },
-  { "BOMID": 18, "ID": 18, "MaterialName": "Copper Wire",    "Quantity": 38 },
+  { "BOMID": 17, "id": 17, "materialName": "Paint Roller Pad",     "quantity": 50 },
+  { "BOMID": 17, "id": 18, "materialName": "Paint Roller Pad",     "quantity": 50 },
+  { "BOMID": 18, "id": 17, "materialName": "Plastic Bucket",       "quantity": 25 },
+  { "BOMID": 18, "id": 18, "materialName": "Plastic Bucket",       "quantity": 25 },
 
-  { "BOMID": 19, "ID": 19, "MaterialName": "Aluminum Sheet", "Quantity": 10 },
-  { "BOMID": 19, "ID": 20, "MaterialName": "Aluminum Sheet", "Quantity": 10 },
-   { "BOMID": 20, "ID": 19, "MaterialName": "Plastic Cover",  "Quantity": 24 },
-  { "BOMID": 20, "ID": 20, "MaterialName": "Plastic Cover",  "Quantity": 24 }
+  { "BOMID": 19, "id": 19, "materialName": "Aluminum Ladder Rail", "quantity": 10 },
+  { "BOMID": 19, "id": 20, "materialName": "Aluminum Ladder Rail", "quantity": 10 },
+  { "BOMID": 20, "id": 19, "materialName": "Steel Ladder Rung",    "quantity": 14 },
+  { "BOMID": 20, "id": 20, "materialName": "Steel Ladder Rung",    "quantity": 14 }
 ]
+``
+
+
+// src/entities/bom.js
+export const boms = [
+  // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
+];
+

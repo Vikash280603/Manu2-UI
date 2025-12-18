@@ -1,23 +1,140 @@
 
+export const products =
+
 [
-  { "ID": 1, "Name": "Widget A", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 2, "Name": "Widget B", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 3, "Name": "Widget C", "Category": "Electrical", "Status": "Active" },
-  { "ID": 4, "Name": "Widget D", "Category": "Electrical", "Status": "Active" },
-  { "ID": 5, "Name": "Widget E", "Category": "Packaging", "Status": "Active" },
-  { "ID": 6, "Name": "Widget F", "Category": "Packaging", "Status": "Active" },
-  { "ID": 7, "Name": "Widget G", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 8, "Name": "Widget H", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 9, "Name": "Widget I", "Category": "Electrical", "Status": "Active" },
-  { "ID": 10, "Name": "Widget J", "Category": "Electrical", "Status": "Active" },
-  { "ID": 11, "Name": "Widget K", "Category": "Packaging", "Status": "Active" },
-  { "ID": 12, "Name": "Widget L", "Category": "Packaging", "Status": "Active" },
-  { "ID": 13, "Name": "Widget M", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 14, "Name": "Widget N", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 15, "Name": "Widget O", "Category": "Electrical", "Status": "Active" },
-  { "ID": 16, "Name": "Widget P", "Category": "Electrical", "Status": "Active" },
-  { "ID": 17, "Name": "Widget Q", "Category": "Packaging", "Status": "Active" },
-  { "ID": 18, "Name": "Widget R", "Category": "Packaging", "Status": "Active" },
-   { "ID": 19, "Name": "Widget S", "Category": "Mechanical", "Status": "Active" },
-  { "ID": 20, "Name": "Widget T", "Category": "Mechanical", "Status": "Active" }
+  { "id": 1, "name": "Hammer", "category": "Mechanical", "status": "Active" },
+  { "id": 2, "name": "Wrench", "category": "Mechanical", "status": "Active" },
+  
+  { "id": 3, "name": "Screwdriver", "category": "Electrical", "status": "Active" },
+  { "id": 4, "name": "Drill", "category": "Electrical", "status": "Active" },
+  
+  { "id": 5, "name": "Saw", "category": "Packaging", "status": "Active" },
+  { "id": 6, "name": "Pliers", "category": "Packaging", "status": "Active" },
+  
+  { "id": 7, "name": "Chisel", "category": "Construction", "status": "Active" },
+  { "id": 8, "name": "Clamp", "category": "Construction", "status": "Active" },
+  
+  { "id": 9, "name": "Spanner", "category": "Tools", "status": "Active" },
+  { "id": 10, "name": "File", "category": "Tools", "status": "Active" },
+  
+  { "id": 11, "name": "Tape Measure", "category": "Measurement", "status": "Active" },
+  { "id": 12, "name": "Level", "category": "Measurement", "status": "Active" },
+  
+  { "id": 13, "name": "Socket", "category": "Hardware", "status": "Active" },
+  { "id": 14, "name": "Ratchet", "category": "Hardware", "status": "Active" },
+  
+  { "id": 15, "name": "Vice", "category": "Workshop", "status": "Active" },
+  { "id": 16, "name": "Brush", "category": "Workshop", "status": "Active" },
+  
+  { "id": 17, "name": "Roller", "category": "Painting", "status": "Active" },
+  { "id": 18, "name": "Bucket", "category": "Painting", "status": "Active" },
+  
+  { "id": 19, "name": "Ladder", "category": "Safety", "status": "Active" },
+   { "id": 20, "name": "Trowel", "category": "Safety", "status": "Active" }
 ]
+
+
+
+
+
+// src/entities/product.js
+// export const products = [
+//   {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//     {
+//     id: "p1",
+//     name: "Widget Alpha",
+//     category: "Widgets",
+//     status: "ACTIVE"
+//   },
+//   {
+//     id: "p2",
+//     name: "Cog Beta",
+//     category: "Cogs",
+//     status: "DISCONTINUED"
+//   },
+//   // Add more products as needed
+// ];
+
