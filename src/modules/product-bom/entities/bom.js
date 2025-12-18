@@ -1,3 +1,4 @@
+// <<<<<<< chinna
 
 export const boms = 
 
@@ -52,11 +53,17 @@ export const boms =
   { "BOMID": 20, "id": 19, "materialName": "Steel Ladder Rung",    "quantity": 14 },
   { "BOMID": 20, "id": 20, "materialName": "Steel Ladder Rung",    "quantity": 14 }
 ]
-``
 
 
-// src/entities/bom.js
-export const boms = [
-  // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
-];
 
+// // src/entities/bom.js
+// export const boms = [
+//   // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
+// ];
+
+// =======
+// // src/entities/bom.js
+// export const boms = [
+//   // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
+// ];
+// >>>>>>> main
