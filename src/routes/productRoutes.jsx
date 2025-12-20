@@ -2,27 +2,25 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-// Import your actual pages
+// Page imports
 import EditProduct from '../modules/product-bom/pages/EditProduct';
 import AddProduct from '../modules/product-bom/pages/AddProduct';
 import ProductList from '../modules/product-bom/pages/ProductList';
-
-// -- PLACEHOLDERS for future pages (Edit/Detail) --
-// You can replace these with: import ProductDetail from './pages/ProductDetail';
-
+import EditBOM from '../modules/product-bom/pages/EditBOM'; // Import EditBOM page
 
 const ProductRoutes = () => {
   return (
     <Routes>
-      {/* path="/" here matches the parent path "/products" 
-         So this renders at: http://localhost:5173/products 
-      */}
+      {/* Matches: /products */}
       <Route index element={<ProductList />} />
-      
-      {/* Matches: http://localhost:5173/products/:id (e.g., /products/101) */}
+
+      {/* Matches: /products/:id/edit */}
       <Route path=":id/edit" element={<EditProduct />} />
 
-      {/* Matches: http://localhost:5173/products/edit */}
+      {/* Matches: /products/:id/edit-bom */}
+      <Route path=":id/edit-bom" element={<EditBOM />} />
+
+      {/* Matches: /products/add */}
       <Route path="add" element={<AddProduct />} />
     </Routes>
   );
