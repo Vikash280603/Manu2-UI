@@ -7,6 +7,7 @@ import EditProduct from '../modules/product-bom/pages/EditProduct';
 import AddProduct from '../modules/product-bom/pages/AddProduct';
 import ProductList from '../modules/product-bom/pages/ProductList';
 import EditBOM from '../modules/product-bom/pages/EditBOM'; // Import EditBOM page
+import AddBom from '../modules/product-bom/pages/AddBOM';
 
 const ProductRoutes = () => {
   return (
@@ -22,6 +23,8 @@ const ProductRoutes = () => {
 
       {/* Matches: /products/add */}
       <Route path="add" element={<AddProduct />} />
+
+      <Route path="addbom" element={<AddBom/>} />
     </Routes>
   );
 };

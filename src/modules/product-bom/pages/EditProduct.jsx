@@ -5,7 +5,7 @@ import {
   DialogActions, IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate  } from 'react-router-dom';
 
 export default function EditProduct({ open, handleClose, productId, onSaveSuccess }) {
   const [formData, setFormData] = useState({ name: '', category: '', status: 'ACTIVE' });
