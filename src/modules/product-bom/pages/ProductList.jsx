@@ -5,10 +5,14 @@ import ProductCard from "../components/ProductCard";
 import EditProductModal from "./EditProduct"; // Import the modal version
 import { products as initialProducts } from "../entities/product";
 import { boms as initialBoms } from "../entities/bom"; // Import the static BOM data
+import { Navigate , useNavigate  } from "react-router-dom";
+import AddProduct from "./AddProduct";
+
  
 function ProductList() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const Navigate = useNavigate();
  
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,6 +72,7 @@ function ProductList() {
             variant="contained"
             startIcon={<AddIcon />}
             sx={{ borderRadius: "10px", px: 3, fontWeight: 700 }}
+            onClick={()=>Navigate('/products/add')}
 >
             New Product
 </Button>
