@@ -14,6 +14,8 @@ import WorkOrderList from './modules/ProductionScheduling/WorkOrderList';
 import QualityCheckList from './modules/QualityControl/QualityCheckList';
 import ProtectedRoute from './auth/ProtectedRoutes';
 import ProductRoutes from './routes/productRoutes';
+import InventoryList from './modules/Inventory/Pages/InventoryList';
+import InventoryRoutes from './routes/inventoryRoutes';
 
 
 
@@ -28,14 +30,20 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} /> 
-        <Route path="/inventory" element={<Inventory/>}/>
+      
         <Route path="/productionscheduling" element={<WorkOrderList/>}/>
         <Route path="/quality-checks" element={<QualityCheckList/>}/>
-
-        <Route path="/products/*" element={<ProtectedRoute>
-              <ProductRoutes />
-            </ProtectedRoute>
-
+      {/* Product Routes */}
+        <Route path="/products/*" element={
+          <ProtectedRoute>
+            <ProductRoutes />
+          </ProtectedRoute>
+        }/>
+        {/* Inventory Routes */}
+         <Route path="/inventory/*" element={
+          <ProtectedRoute>
+            <InventoryRoutes/>
+          </ProtectedRoute>
         }/>
       </Routes>
 
