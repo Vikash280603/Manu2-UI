@@ -13,8 +13,8 @@ import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomiz
 
 import ProductCard from "../components/ProductCard";
 import EditProductModal from "./EditProduct";
-import { products as initialProducts } from "../entities/product";
-import { boms as initialBoms } from "../entities/bom";
+import { products as initialProducts } from "../../entities/product";
+import { boms as initialBoms } from "../../entities/bom";
 import { useNavigate } from "react-router-dom";
 
 function ProductList() {
