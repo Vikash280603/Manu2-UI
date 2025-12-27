@@ -6,7 +6,7 @@ import { Routes, Route } from 'react-router-dom';
 // Make sure these paths match exactly where your files are located
 
 
-import AddInventory from '../modules/Inventory/Pages/AddInventory'; 
+
 import InventoryList from '../modules/Inventory/Pages/InventoryList';
 // import EditInventory from '../modules/Inventory/Pages/EditInventory'; // Uncomment if you create this later
 
@@ -21,12 +21,6 @@ const InventoryRoutes = () => {
       */}
       <Route index element={<InventoryList />} />
 
-      {/* 2. The Add Route
-        Matches: /inventory/add
-        Notice we use "add", not "/add". 
-        In nested routes, we don't use the leading slash so it stays relative to the parent.
-      */}
-      <Route path="add" element={<AddInventory />} />
 
       {/* 3. (Optional) The Edit Route
         Matches: /inventory/:id/edit
