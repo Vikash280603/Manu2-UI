@@ -29,6 +29,12 @@ export const users = [
     password: "qc123",
     role: "qc_manager"
   },
+    {
+    name: "Admin",
+    email: "admin@company.com",
+    password: "admin123",
+    role: "admin"
+  },
  
 ];
 
