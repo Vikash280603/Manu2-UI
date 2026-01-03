@@ -15,7 +15,9 @@ import {
   Paper,
   Tooltip,
   Avatar,
-  alpha
+  alpha,
+  Container,
+  Button
 } from "@mui/material";
 
 // Icons
@@ -25,8 +27,11 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
-// Keep your existing imports
 import { products } from "../../entities/product";
 import { generateInventory } from "../entities/inventory";
 
@@ -36,7 +41,6 @@ const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
 
-  // --- Initialization Logic ---
   useEffect(() => {
     const storedInventory = localStorage.getItem(STORAGE_KEY);
     if (storedInventory) {
@@ -57,7 +61,6 @@ const InventoryList = () => {
     return products.find((p) => p.id === productId)?.name || "Unknown Product";
   };
 
-  // --- Handlers ---
   const updateMaterialQty = (productId, materialName, delta) => {
     const updatedInventory = inventory.map((inv) => {
       if (inv.productId !== productId) return inv;
@@ -88,7 +91,6 @@ const InventoryList = () => {
     persistInventory(updatedInventory);
   };
 
-  // --- Derived State for Top Alerts ---
   const lowStockSummary = useMemo(() => {
     let alerts = [];
     inventory.forEach((inv) => {
@@ -99,7 +101,7 @@ const InventoryList = () => {
             material: mat.materialName,
             current: mat.availableQty,
             needed: mat.thresholdQty,
-            invId: inv.inventoryId // Used to jump to card
+            invId: inv.inventoryId
           });
         }
       });
@@ -107,282 +109,570 @@ const InventoryList = () => {
     return alerts;
   }, [inventory]);
 
+  // Statistics
+  const stats = {
+    totalProducts: inventory.length,
+    lowStock: lowStockSummary.length,
+    totalMaterials: inventory.reduce((acc, inv) => acc + (inv.materials?.length || 0), 0),
+    healthyStock: inventory.filter(inv => 
+      !inv.materials?.some(mat => mat.availableQty < mat.thresholdQty)
+    ).length
+  };
+
   return (
-    <Box sx={{ pb: 10 }}>
-      {/* 1. TOP DASHBOARD SECTION - High Visibility */}
-      <Collapse in={lowStockSummary.length > 0}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 3, 
-            mb: 4, 
-            // Changed from orange bg to White with Red Border for cleaner look
-            border: '1px solid #ffcc80', 
-            borderLeft: '6px solid #ed6c02',
-            bgcolor: '#fff',
-            borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        py: 4
+      }}
+    >
+      <Container maxWidth="xl">
+        {/* Header Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            borderRadius: 4,
+            p: 4,
+            mb: 3
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="flex-start">
-            <WarningAmberRoundedIcon color="warning" sx={{ fontSize: 32, mt: 0.5 }} />
-            <Box width="100%">
-              <Typography variant="h6" color="#2c3e50" fontWeight="bold" gutterBottom>
-                Critical Low Stock Alerts ({lowStockSummary.length})
-              </Typography>
-              <Grid container spacing={2}>
-                {lowStockSummary.map((alert, idx) => (
-                  <Grid item xs={12} sm={6} md={4} key={idx}>
-                    <Box 
-                      sx={{ 
-                        bgcolor: '#fafafa', // Minimal grey/white
-                        p: 2, 
-                        borderRadius: 2, 
-                        border: '1px solid #eee',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        transition: '0.2s',
-                        '&:hover': { bgcolor: '#fff3e0', borderColor: '#ffcc80' } // Hover turns to alert color
-                      }}
-                      onClick={() => setExpandedId(alert.invId)}
-                    >
-                      <Box>
-                        <Typography variant="subtitle2" fontWeight="bold" color="#374151">
-                          {alert.material}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          In: {alert.productName}
-                        </Typography>
-                      </Box>
-                      <Chip 
-                        label={`${alert.current} / ${alert.needed}`} 
-                        size="small" 
-                        // Alert color kept as requested
-                        sx={{ 
-                            fontWeight: 'bold', 
-                            bgcolor: '#ffebee', 
-                            color: '#c62828',
-                            border: '1px solid #ffcdd2'
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          </Stack>
-        </Paper>
-      </Collapse>
-
-      {/* 2. MAIN INVENTORY GRID */}
-      <Grid container spacing={3}>
-        {inventory.map((inv) => {
-          const productName = getProductName(inv.productId);
-          const isLowStock = inv.materials?.some(
-            (mat) => mat.availableQty < mat.thresholdQty
-          );
-          const isExpanded = expandedId === inv.inventoryId;
-
-          // COLOR LOGIC: Blue for Healthy, Red for Alert
-          const statusColor = isLowStock ? "#d32f2f" : "#1976d2"; // Red vs Professional Blue
-          const statusBg = isLowStock ? "#fdeded" : "#e3f2fd"; // Light Red vs Light Blue
-
-          return (
-            <Grid item xs={12} md={6} lg={4} key={inv.inventoryId}>
-              <Card
-                elevation={isExpanded ? 8 : 1}
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "flex-start", md: "center" }}
+            spacing={2}
+          >
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box
                 sx={{
-                  borderRadius: 3,
-                  transition: "all 0.3s ease",
-                  // Structure maintained: Left border indicator
-                  borderLeft: `6px solid ${statusColor}`,
-                  borderTop: '1px solid #f0f0f0',
-                  borderRight: '1px solid #f0f0f0',
-                  borderBottom: '1px solid #f0f0f0',
-                  height: 'fit-content'
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
               >
-                <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-                  {/* Card Header Area */}
-                  <Box 
-                    sx={{ p: 2.5, cursor: "pointer", bgcolor: 'white' }}
-                    onClick={() => setExpandedId(isExpanded ? null : inv.inventoryId)}
-                  >
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Avatar 
-                          variant="rounded" 
-                          sx={{ 
-                            bgcolor: statusBg,
-                            color: statusColor,
-                            borderRadius: 2
-                          }}
-                        >
-                          <Inventory2OutlinedIcon />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6" fontWeight="bold" lineHeight={1.2} color="#1e293b">
-                            {productName}
+                <Inventory2OutlinedIcon sx={{ color: "white", fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography variant="h4" fontWeight="700" color="text.primary">
+                  Inventory Management
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Track materials and restock levels
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack direction="row" spacing={2}>
+              <IconButton
+                sx={{
+                  background: alpha("#667eea", 0.1),
+                  color: "#667eea",
+                  "&:hover": { background: alpha("#667eea", 0.2) }
+                }}
+              >
+                <RefreshIcon />
+              </IconButton>
+              <IconButton
+                sx={{
+                  background: alpha("#667eea", 0.1),
+                  color: "#667eea",
+                  "&:hover": { background: alpha("#667eea", 0.2) }
+                }}
+              >
+                <FilterListIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Paper>
+
+        {/* Statistics Dashboard */}
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={6} sm={3}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                border: `2px solid ${alpha("#667eea", 0.2)}`
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="overline" color="text.secondary" fontWeight="600">
+                  Total Products
+                </Typography>
+                <Typography variant="h3" fontWeight="800" color="#667eea">
+                  {stats.totalProducts}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
+                position: "relative",
+                overflow: "hidden"
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
+                  Low Stock
+                </Typography>
+                <Typography variant="h3" fontWeight="800" color="white">
+                  {stats.lowStock}
+                </Typography>
+              </Stack>
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: -15,
+                  right: -15,
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.1)"
+                }}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+                position: "relative",
+                overflow: "hidden"
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
+                  Healthy Stock
+                </Typography>
+                <Typography variant="h3" fontWeight="800" color="white">
+                  {stats.healthyStock}
+                </Typography>
+              </Stack>
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: -15,
+                  right: -15,
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.1)"
+                }}
+              />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                border: `2px solid ${alpha("#667eea", 0.2)}`
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="overline" color="text.secondary" fontWeight="600">
+                  Total Materials
+                </Typography>
+                <Typography variant="h3" fontWeight="800" color="#667eea">
+                  {stats.totalMaterials}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Low Stock Alert Banner */}
+        <Collapse in={lowStockSummary.length > 0}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 4,
+              background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
+              position: "relative",
+              overflow: "hidden"
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ position: "relative", zIndex: 1 }}>
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 2,
+                  background: "rgba(255, 255, 255, 0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <WarningAmberRoundedIcon sx={{ fontSize: 32, color: "white" }} />
+              </Box>
+              <Box width="100%">
+                <Typography variant="h5" color="white" fontWeight="700" gutterBottom>
+                  Critical Low Stock Alerts ({lowStockSummary.length})
+                </Typography>
+                <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.9)", mb: 2 }}>
+                  The following materials require immediate restocking
+                </Typography>
+                <Grid container spacing={2}>
+                  {lowStockSummary.map((alert, idx) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+                      <Paper
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          background: "rgba(255, 255, 255, 0.95)",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 8px 16px rgba(0,0,0,0.1)"
+                          }
+                        }}
+                        onClick={() => setExpandedId(alert.invId)}
+                      >
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2" fontWeight="700" color="text.primary">
+                            {alert.material}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                             {inv.location} • ID: {inv.inventoryId}
+                            {alert.productName}
                           </Typography>
-                        </Box>
+                          <Chip
+                            icon={<TrendingDownIcon />}
+                            label={`${alert.current} / ${alert.needed} units`}
+                            size="small"
+                            sx={{
+                              background: alpha("#ff6a00", 0.1),
+                              color: "#ff6a00",
+                              border: `2px solid ${alpha("#ff6a00", 0.3)}`,
+                              fontWeight: 700
+                            }}
+                          />
+                        </Stack>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            </Stack>
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -30,
+                right: -30,
+                width: 150,
+                height: 150,
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.1)"
+              }}
+            />
+          </Paper>
+        </Collapse>
+
+        {/* Inventory Grid */}
+        <Grid container spacing={3}>
+          {inventory.map((inv) => {
+            const productName = getProductName(inv.productId);
+            const isLowStock = inv.materials?.some(
+              (mat) => mat.availableQty < mat.thresholdQty
+            );
+            const isExpanded = expandedId === inv.inventoryId;
+
+            const statusConfig = isLowStock ? {
+              color: "#ff6a00",
+              bgColor: alpha("#ff6a00", 0.1),
+              borderColor: alpha("#ff6a00", 0.3),
+              gradient: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)"
+            } : {
+              color: "#38ef7d",
+              bgColor: alpha("#38ef7d", 0.1),
+              borderColor: alpha("#38ef7d", 0.3),
+              gradient: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+            };
+
+            return (
+              <Grid item xs={12} md={6} lg={4} key={inv.inventoryId}>
+                <Card
+                  sx={{
+                    borderRadius: 4,
+                    overflow: "hidden",
+                    background: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                    border: `2px solid ${statusConfig.borderColor}`,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      transform: isExpanded ? "none" : "translateY(-4px)",
+                      boxShadow: `0 12px 24px ${alpha(statusConfig.color, 0.2)}`
+                    }
+                  }}
+                >
+                  <Box sx={{ height: 6, background: statusConfig.gradient }} />
+
+                  <CardContent sx={{ p: 0 }}>
+                    {/* Card Header */}
+                    <Box
+                      sx={{ p: 3, cursor: "pointer" }}
+                      onClick={() => setExpandedId(isExpanded ? null : inv.inventoryId)}
+                    >
+                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                        <Stack direction="row" spacing={2} alignItems="center" flex={1}>
+                          <Avatar
+                            variant="rounded"
+                            sx={{
+                              bgcolor: statusConfig.bgColor,
+                              color: statusConfig.color,
+                              width: 56,
+                              height: 56,
+                              borderRadius: 2
+                            }}
+                          >
+                            <Inventory2OutlinedIcon sx={{ fontSize: 28 }} />
+                          </Avatar>
+                          <Box>
+                            <Typography variant="h6" fontWeight="700" color="text.primary">
+                              {productName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {inv.location} • ID: {inv.inventoryId}
+                            </Typography>
+                          </Box>
+                        </Stack>
+
+                        <IconButton
+                          size="small"
+                          sx={{
+                            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.3s ease',
+                            background: alpha(statusConfig.color, 0.1),
+                            color: statusConfig.color,
+                            "&:hover": {
+                              background: alpha(statusConfig.color, 0.2)
+                            }
+                          }}
+                        >
+                          <ExpandMoreIcon />
+                        </IconButton>
                       </Stack>
 
-                      <IconButton 
-                        size="small"
-                        sx={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}
-                      >
-                        <ExpandMoreIcon />
-                      </IconButton>
-                    </Stack>
-
-                    {/* Quick Status Pill */}
-                    <Stack direction="row" spacing={1} mt={2}>
+                      <Stack direction="row" spacing={1}>
                         {isLowStock ? (
-                           <Chip 
-                                icon={<WarningAmberRoundedIcon sx={{ color: '#d32f2f !important' }} />} 
-                                label="Restock Needed" 
-                                size="small" 
-                                sx={{ bgcolor: '#ffebee', color: '#d32f2f', fontWeight: 'bold' }}
-                            />
+                          <Chip
+                            icon={<WarningAmberRoundedIcon />}
+                            label="Restock Needed"
+                            size="small"
+                            sx={{
+                              background: statusConfig.bgColor,
+                              color: statusConfig.color,
+                              border: `2px solid ${statusConfig.borderColor}`,
+                              fontWeight: 700
+                            }}
+                          />
                         ) : (
-                           <Chip 
-                                icon={<CheckCircleOutlineRoundedIcon sx={{ color: '#1976d2 !important' }} />} 
-                                label="Stock Healthy" 
-                                size="small" 
-                                sx={{ bgcolor: '#e3f2fd', color: '#1565c0', fontWeight: 'bold' }} // Blue Pill
-                            />
+                          <Chip
+                            icon={<CheckCircleOutlineRoundedIcon />}
+                            label="Stock Healthy"
+                            size="small"
+                            sx={{
+                              background: statusConfig.bgColor,
+                              color: statusConfig.color,
+                              border: `2px solid ${statusConfig.borderColor}`,
+                              fontWeight: 700
+                            }}
+                          />
                         )}
-                    </Stack>
-                  </Box>
+                        <Chip
+                          label={`${inv.materials?.length || 0} Materials`}
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      </Stack>
+                    </Box>
 
-                  {/* Expandable Details */}
-                  <Collapse in={isExpanded}>
-                    <Divider />
-                    {/* Background changed to Blue-Grey Tint for minimal look */}
-                    <Box sx={{ bgcolor: "#f0f7ff", p: 2 }}> 
-                      <Typography variant="overline" color="text.secondary" fontWeight="bold">
-                        Bill of Materials & Stock
-                      </Typography>
+                    {/* Expandable Details */}
+                    <Collapse in={isExpanded}>
+                      <Divider />
+                      <Box sx={{ bgcolor: alpha("#667eea", 0.03), p: 3 }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                          <Typography variant="subtitle2" fontWeight="700" color="text.primary">
+                            Bill of Materials
+                          </Typography>
+                          <Button
+                            size="small"
+                            startIcon={<LocalShippingIcon />}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 600,
+                              color: "#667eea"
+                            }}
+                          >
+                            Order Supplies
+                          </Button>
+                        </Stack>
 
-                      <Stack spacing={2} mt={1}>
-                        {(inv.materials || []).map((mat, idx) => {
-                          const isShortage = mat.availableQty < mat.thresholdQty;
-                          const health = Math.min((mat.availableQty / (mat.thresholdQty || 1)) * 100, 100);
+                        <Stack spacing={2}>
+                          {(inv.materials || []).map((mat, idx) => {
+                            const isShortage = mat.availableQty < mat.thresholdQty;
+                            const health = Math.min((mat.availableQty / (mat.thresholdQty || 1)) * 100, 100);
 
-                          return (
-                            <Paper 
-                              key={idx} 
-                              elevation={0}
-                              sx={{ 
-                                p: 2, 
-                                borderRadius: 2,
-                                // Red border if shortage, otherwise subtle border
-                                border: '1px solid',
-                                borderColor: isShortage ? '#ef5350' : '#e0e0e0',
-                                bgcolor: 'white'
-                              }}
-                            >
-                              {/* Row 1: Name and Progress */}
-                              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                                <Typography variant="subtitle2" fontWeight="bold" color="#334155">
-                                  {mat.materialName}
-                                </Typography>
-                                {isShortage && (
-                                  <Typography variant="caption" color="error" fontWeight="bold">
-                                    Below Min ({mat.thresholdQty})
-                                  </Typography>
-                                )}
-                              </Stack>
-
-                              {/* Visual Progress Bar */}
-                              <LinearProgress 
-                                variant="determinate" 
-                                value={health} 
-                                // Color logic: Error if shortage, otherwise Primary Blue
-                                color={isShortage ? "error" : "primary"}
-                                sx={{ 
-                                    height: 6, 
-                                    borderRadius: 3, 
-                                    mb: 2, 
-                                    opacity: 0.8,
-                                    bgcolor: '#e2e8f0' // Slate grey background for track
+                            return (
+                              <Paper
+                                key={idx}
+                                elevation={0}
+                                sx={{
+                                  p: 2.5,
+                                  borderRadius: 3,
+                                  border: `2px solid ${isShortage ? alpha("#ff6a00", 0.3) : alpha("#667eea", 0.1)}`,
+                                  background: "white"
                                 }}
-                              />
+                              >
+                                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+                                  <Typography variant="subtitle2" fontWeight="700" color="text.primary">
+                                    {mat.materialName}
+                                  </Typography>
+                                  {isShortage && (
+                                    <Chip
+                                      label={`Below Min (${mat.thresholdQty})`}
+                                      size="small"
+                                      sx={{
+                                        background: alpha("#ff6a00", 0.1),
+                                        color: "#ff6a00",
+                                        fontWeight: 700,
+                                        fontSize: 11
+                                      }}
+                                    />
+                                  )}
+                                </Stack>
 
-                              {/* Controls */}
-                              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                                {/* Threshold Input */}
-                                <TextField
-                                  label="Min Limit"
-                                  type="number"
-                                  variant="standard"
-                                  size="small"
-                                  value={mat.thresholdQty}
-                                  onChange={(e) => updateMaterialThreshold(inv.productId, mat.materialName, e.target.value)}
-                                  InputProps={{ disableUnderline: true, style: { fontWeight: 'bold', color: '#475569' } }}
-                                  sx={{ 
-                                    width: 80, 
-                                    bgcolor: '#f1f5f9', // Slate 100
-                                    borderRadius: 1, 
-                                    px: 1,
-                                    '& .MuiInputLabel-root': { pl: 1 } 
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={health}
+                                  sx={{
+                                    height: 8,
+                                    borderRadius: 4,
+                                    mb: 2,
+                                    backgroundColor: alpha(isShortage ? "#ff6a00" : "#38ef7d", 0.1),
+                                    "& .MuiLinearProgress-bar": {
+                                      backgroundColor: isShortage ? "#ff6a00" : "#38ef7d",
+                                      borderRadius: 4
+                                    }
                                   }}
                                 />
 
-                                {/* Qty Counter - Clean Minimal Pill Style */}
-                                <Stack 
-                                  direction="row" 
-                                  alignItems="center" 
-                                  spacing={1} 
-                                  sx={{ 
-                                    border: '1px solid #cbd5e1',
-                                    borderRadius: 50,
-                                    px: 0.5,
-                                    py: 0.5
-                                  }}
-                                >
-                                  <Tooltip title="Decrease">
-                                    <IconButton 
-                                      size="small" 
-                                      sx={{ width: 28, height: 28, color: '#64748b' }}
-                                      onClick={() => updateMaterialQty(inv.productId, mat.materialName, -1)}
-                                    >
-                                      <RemoveIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  
-                                  <Typography sx={{ minWidth: 30, textAlign: 'center', fontWeight: 'bold', color: '#1e293b' }}>
-                                    {mat.availableQty}
-                                  </Typography>
+                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                  <TextField
+                                    label="Min Threshold"
+                                    type="number"
+                                    size="small"
+                                    value={mat.thresholdQty}
+                                    onChange={(e) => updateMaterialThreshold(inv.productId, mat.materialName, e.target.value)}
+                                    sx={{
+                                      width: 120,
+                                      "& .MuiOutlinedInput-root": {
+                                        borderRadius: 2,
+                                        background: alpha("#667eea", 0.05),
+                                        "& fieldset": {
+                                          borderColor: alpha("#667eea", 0.2)
+                                        }
+                                      }
+                                    }}
+                                  />
 
-                                  <Tooltip title="Increase">
-                                    <IconButton 
-                                      size="small" 
-                                      sx={{ width: 28, height: 28, color: '#1976d2', bgcolor: '#e3f2fd' }}
-                                      onClick={() => updateMaterialQty(inv.productId, mat.materialName, 1)}
+                                  <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    spacing={1}
+                                    sx={{
+                                      border: `2px solid ${alpha("#667eea", 0.2)}`,
+                                      borderRadius: 3,
+                                      px: 0.5,
+                                      py: 0.5,
+                                      background: "white"
+                                    }}
+                                  >
+                                    <Tooltip title="Decrease">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => updateMaterialQty(inv.productId, mat.materialName, -1)}
+                                        sx={{
+                                          width: 32,
+                                          height: 32,
+                                          color: "#667eea",
+                                          "&:hover": {
+                                            background: alpha("#667eea", 0.1)
+                                          }
+                                        }}
+                                      >
+                                        <RemoveIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <Typography
+                                      sx={{
+                                        minWidth: 40,
+                                        textAlign: 'center',
+                                        fontWeight: 800,
+                                        fontSize: 16,
+                                        color: isShortage ? "#ff6a00" : "#667eea"
+                                      }}
                                     >
-                                      <AddIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
+                                      {mat.availableQty}
+                                    </Typography>
+
+                                    <Tooltip title="Increase">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => updateMaterialQty(inv.productId, mat.materialName, 1)}
+                                        sx={{
+                                          width: 32,
+                                          height: 32,
+                                          background: alpha("#667eea", 0.1),
+                                          color: "#667eea",
+                                          "&:hover": {
+                                            background: alpha("#667eea", 0.2)
+                                          }
+                                        }}
+                                      >
+                                        <AddIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Stack>
                                 </Stack>
-                              </Stack>
-                            </Paper>
-                          );
-                        })}
-                      </Stack>
-                    </Box>
-                  </Collapse>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                              </Paper>
+                            );
+                          })}
+                        </Stack>
+                      </Box>
+                    </Collapse>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Container>
     </Box>
   );
 };
