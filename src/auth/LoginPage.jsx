@@ -17,7 +17,8 @@ const roleRedirects = {
   product_bom_manager: "/products",
   inventory_manager: "/inventory",
   qc_manager: "/quality-checks",
-  dashboard_user: "/dashboard"
+  dashboard_user: "/dashboard",
+  admin: "/analytics",
 };
 
 function LoginPage() {
