@@ -38,18 +38,22 @@ const CreateWorkOrder = () => {
   const navigate = useNavigate();
 
   const [productId, setProductId] = useState("");
-  const [qty, setQty] = useState(1);
-  const [batches, setBatches] = useState(1);
+  const [qty, setQty] = useState("1");
+  const [batches, setBatches] = useState("1");
   const [scheduledDate, setScheduledDate] = useState("");
+
+  // CHANGED: compute numeric values for display/calculation
+  const qtyNumForCalc = Math.max(1, parseInt(qty, 10) || 1);
+  const batchesNumForCalc = Math.max(1, parseInt(batches, 10) || 1);
 
   const createOrders = () => {
     const existing = getWorkOrders();
     const now = new Date().toISOString();
 
-    const newOrders = Array.from({ length: batches }).map(() => ({
+    const newOrders = Array.from({ length: batchesNumForCalc }).map(() => ({
       workOrderId: generateWorkOrderId(),
       productId: Number(productId),
-      quantity: qty,
+      quantity: qtyNumForCalc,
       status: "PLANNED",
       createdAt: now,
       scheduledDate,
@@ -61,7 +65,9 @@ const CreateWorkOrder = () => {
   };
 
   const selectedProduct = products.find(p => p.id === Number(productId));
-  const totalQuantity = qty * batches;
+  
+  
+  const totalQuantity = qtyNumForCalc * batchesNumForCalc;
 
   return (
     <Box
@@ -251,11 +257,25 @@ const CreateWorkOrder = () => {
                       <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                         Quantity per Batch
                       </Typography>
-                      <TextField
+                      {/* <TextField
                         type="number"
                         fullWidth
                         value={qty}
-                        onChange={(e) => setQty(Math.max(1, +e.target.value))}
+                        onChange={(e) => setQty(Math.max(1, +e.target.value))} */}
+                      <TextField
+                        type="number"
+                        fullWidth
+                        // CHANGED: value is a string so the input can be cleared while typing
+                        value={qty}
+                        // CHANGED: allow typing (including an empty string) and only keep digits
+                        onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))}
+                        // CHANGED: onFocus clear the "1" so typing replaces it; onBlur restore to at least "1"
+                        //onFocus={() => { if (qty === "1") setQty(""); }} // CHANGED
+                        onBlur={() => {
+                          // ensure a valid numeric value after user leaves input
+                          const n = Math.max(1, parseInt(qty, 10) || 1);
+                          setQty(String(n));
+                        }} // CHANGED
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -287,11 +307,21 @@ const CreateWorkOrder = () => {
                       <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                         Number of Batches
                       </Typography>
-                      <TextField
+                      {/* <TextField
                         type="number"
                         fullWidth
                         value={batches}
-                        onChange={(e) => setBatches(Math.max(1, +e.target.value))}
+                        onChange={(e) => setBatches(Math.max(1, +e.target.value))} */}
+                      <TextField
+                        type="number"
+                        fullWidth
+                        value={batches} // CHANGED: string value
+                        onChange={(e) => setBatches(e.target.value.replace(/\D/g, ""))} // CHANGED
+                        //onFocus={() => { if (batches === "1") setBatches(""); }} // CHANGED
+                        onBlur={() => {
+                          const n = Math.max(1, parseInt(batches, 10) || 1);
+                          setBatches(String(n));
+                        }} // CHANGED
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
