@@ -1,69 +1,91 @@
-// <<<<<<< chinna
+// bom.js
+// Bill of Materials data
+// NOTE:
+// - BOMID is UNIQUE for every object
+// - id = product id (can repeat)
+// - Each product has multiple BOM entries
 
-export const boms = 
+export const boms = [
 
-[
-  { "BOMID": 1,  "id": 1,  "materialName": "Steel Rod",            "quantity": 10 },
-  { "BOMID": 1,  "id": 2,  "materialName": "Steel Rod",            "quantity": 10 },
-  { "BOMID": 2,  "id": 1,  "materialName": "Aluminum Sheet",       "quantity": 5  },
-  { "BOMID": 2,  "id": 2,  "materialName": "Aluminum Sheet",       "quantity": 5  },
+  // Product 1
+  { BOMID: 1, id: 1, materialName: "Steel Head", quantity: 1 },
+  { BOMID: 2, id: 1, materialName: "Wooden Handle", quantity: 1 },
 
-  { "BOMID": 3,  "id": 3,  "materialName": "Copper Wire",          "quantity": 50 },
-  { "BOMID": 3,  "id": 4,  "materialName": "Copper Wire",          "quantity": 50 },
-  { "BOMID": 4,  "id": 3,  "materialName": "Plastic Cover",        "quantity": 20 },
-  { "BOMID": 4,  "id": 4,  "materialName": "Plastic Cover",        "quantity": 20 },
+  // Product 2
+  { BOMID: 3, id: 2, materialName: "Chrome Steel Body", quantity: 1 },
+  { BOMID: 4, id: 2, materialName: "Anti-rust Coating", quantity: 1 },
 
-  { "BOMID": 5,  "id": 5,  "materialName": "Cardboard Sheet",      "quantity": 30 },
-  { "BOMID": 5,  "id": 6,  "materialName": "Cardboard Sheet",      "quantity": 30 },
-  { "BOMID": 6,  "id": 5,  "materialName": "Plastic Wrap",         "quantity": 40 },
-  { "BOMID": 6,  "id": 6,  "materialName": "Plastic Wrap",         "quantity": 40 },
+  // Product 3
+  { BOMID: 5, id: 3, materialName: "Steel Shaft", quantity: 1 },
+  { BOMID: 6, id: 3, materialName: "Plastic Handle", quantity: 1 },
 
-  { "BOMID": 7,  "id": 7,  "materialName": "Cement Bag",           "quantity": 25 },
-  { "BOMID": 7,  "id": 8,  "materialName": "Cement Bag",           "quantity": 25 },
-  { "BOMID": 8,  "id": 7,  "materialName": "Steel Rebar",          "quantity": 15 },
-  { "BOMID": 8,  "id": 8,  "materialName": "Steel Rebar",          "quantity": 15 },
+  // Product 4
+  { BOMID: 7, id: 4, materialName: "Electric Motor", quantity: 1 },
+  { BOMID: 8, id: 4, materialName: "Plastic Casing", quantity: 1 },
+  { BOMID: 9, id: 4, materialName: "Copper Wiring", quantity: 20 },
 
-  { "BOMID": 9,  "id": 9,  "materialName": "Tool Steel Bar",       "quantity": 12 },
-  { "BOMID": 9,  "id": 10, "materialName": "Tool Steel Bar",       "quantity": 12 },
-  { "BOMID": 10, "id": 9,  "materialName": "Fastener Set",         "quantity": 60 },
-  { "BOMID": 10, "id": 10, "materialName": "Fastener Set",         "quantity": 60 },
+  // Product 5
+  { BOMID: 10, id: 5, materialName: "Steel Blade", quantity: 1 },
+  { BOMID: 11, id: 5, materialName: "Plastic Handle", quantity: 1 },
 
-  { "BOMID": 11, "id": 11, "materialName": "Measuring Tape",       "quantity": 20 },
-  { "BOMID": 11, "id": 12, "materialName": "Measuring Tape",       "quantity": 20 },
-  { "BOMID": 12, "id": 11, "materialName": "Bubble Level Vial",    "quantity": 14 },
-  { "BOMID": 12, "id": 12, "materialName": "Bubble Level Vial",    "quantity": 14 },
+  // Product 6
+  { BOMID: 12, id: 6, materialName: "Steel Jaws", quantity: 2 },
+  { BOMID: 13, id: 6, materialName: "Rubber Grip", quantity: 2 },
 
-  { "BOMID": 13, "id": 13, "materialName": "Chrome Vanadium Steel","quantity": 18 },
-  { "BOMID": 13, "id": 14, "materialName": "Chrome Vanadium Steel","quantity": 18 },
-  { "BOMID": 14, "id": 13, "materialName": "Ratchet Pawl Set",     "quantity": 8  },
-  { "BOMID": 14, "id": 14, "materialName": "Ratchet Pawl Set",     "quantity": 8  },
+  // Product 7
+  { BOMID: 14, id: 7, materialName: "Hardened Steel Blade", quantity: 1 },
+  { BOMID: 15, id: 7, materialName: "Plastic Handle", quantity: 1 },
 
-  { "BOMID": 15, "id": 15, "materialName": "Cast Iron Jaw",        "quantity": 6  },
-  { "BOMID": 15, "id": 16, "materialName": "Cast Iron Jaw",        "quantity": 6  },
-  { "BOMID": 16, "id": 15, "materialName": "Nylon Bristles",       "quantity": 100 },
-  { "BOMID": 16, "id": 16, "materialName": "Nylon Bristles",       "quantity": 100 },
+  // Product 8
+  { BOMID: 16, id: 8, materialName: "Steel Frame", quantity: 1 },
+  { BOMID: 17, id: 8, materialName: "Threaded Rod", quantity: 1 },
 
-  { "BOMID": 17, "id": 17, "materialName": "Paint Roller Pad",     "quantity": 50 },
-  { "BOMID": 17, "id": 18, "materialName": "Paint Roller Pad",     "quantity": 50 },
-  { "BOMID": 18, "id": 17, "materialName": "Plastic Bucket",       "quantity": 25 },
-  { "BOMID": 18, "id": 18, "materialName": "Plastic Bucket",       "quantity": 25 },
+  // Product 9
+  { BOMID: 18, id: 9, materialName: "Alloy Steel Body", quantity: 1 },
+  { BOMID: 19, id: 9, materialName: "Chrome Finish", quantity: 1 },
 
-  { "BOMID": 19, "id": 19, "materialName": "Aluminum Ladder Rail", "quantity": 10 },
-  { "BOMID": 19, "id": 20, "materialName": "Aluminum Ladder Rail", "quantity": 10 },
-  { "BOMID": 20, "id": 19, "materialName": "Steel Ladder Rung",    "quantity": 14 },
-  { "BOMID": 20, "id": 20, "materialName": "Steel Ladder Rung",    "quantity": 14 }
-]
+  // Product 10
+  { BOMID: 20, id: 10, materialName: "Steel File Plate", quantity: 1 },
+  { BOMID: 21, id: 10, materialName: "Rubber Handle", quantity: 1 },
 
+  // Product 11
+  { BOMID: 22, id: 11, materialName: "Steel Measuring Tape", quantity: 1 },
+  { BOMID: 23, id: 11, materialName: "Plastic Case", quantity: 1 },
 
+  // Product 12
+  { BOMID: 24, id: 12, materialName: "Aluminum Frame", quantity: 1 },
+  { BOMID: 25, id: 12, materialName: "Bubble Vial", quantity: 2 },
 
-// // src/entities/bom.js
-// export const boms = [
-//   // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
-// ];
+  // Product 13
+  { BOMID: 26, id: 13, materialName: "Chrome Vanadium Steel", quantity: 1 },
+  { BOMID: 27, id: 13, materialName: "Protective Coating", quantity: 1 },
 
-// =======
-// // src/entities/bom.js
-// export const boms = [
-//   // example: { id: "b1", productId: "p1", materialName: "Metal Shaft", quantity: 2 }
-// ];
-// >>>>>>> main
+  // Product 14
+  { BOMID: 28, id: 14, materialName: "Steel Handle", quantity: 1 },
+  { BOMID: 29, id: 14, materialName: "Ratchet Mechanism", quantity: 1 },
+
+  // Product 15
+  { BOMID: 30, id: 15, materialName: "Cast Iron Body", quantity: 1 },
+  { BOMID: 31, id: 15, materialName: "Steel Screw Rod", quantity: 1 },
+
+  // Product 16
+  { BOMID: 32, id: 16, materialName: "Plastic Handle", quantity: 1 },
+  { BOMID: 33, id: 16, materialName: "Nylon Bristles", quantity: 50 },
+
+  // Product 17
+  { BOMID: 34, id: 17, materialName: "Roller Frame", quantity: 1 },
+  { BOMID: 35, id: 17, materialName: "Foam Roller Pad", quantity: 1 },
+
+  // Product 18
+  { BOMID: 36, id: 18, materialName: "Plastic Body", quantity: 1 },
+  { BOMID: 37, id: 18, materialName: "Metal Handle", quantity: 1 },
+
+  // Product 19
+  { BOMID: 38, id: 19, materialName: "Aluminum Rails", quantity: 2 },
+  { BOMID: 39, id: 19, materialName: "Steel Steps", quantity: 10 },
+
+  // Product 20
+  { BOMID: 40, id: 20, materialName: "Steel Blade", quantity: 1 },
+  { BOMID: 41, id: 20, materialName: "Wooden Handle", quantity: 1 },
+
+];
