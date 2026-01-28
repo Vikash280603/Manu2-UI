@@ -49,31 +49,7 @@ import { getWorkOrders, saveWorkOrders } from "../entities/workOrders";
 // ============================================================
 const INVENTORY_KEY = "manutrack_inventory_v2";
 
-// ============================================================
-// CONSTANT: Status Configuration Object
-// SYNTAX: const statusConfig = { PLANNED: {...}, IN_PROGRESS: {...}, ... }
-// 
-// LOGIC:
-//   - Stores styling and metadata for each work order status
-//   - Each status has:
-//     * color: primary color for that status
-//     * bgColor: background color (with transparency)
-//     * borderColor: border color (with transparency)
-//     * icon: icon component to display
-//     * label: readable text label
-//     * gradient: gradient background for buttons
-//
-// REASON:
-//   - Consistent UI across all components
-//   - Easy to change colors/icons in one place
-//   - Reusable configuration for multiple status types
-// 
-// EXAMPLE:
-//   statusConfig.PLANNED.color = "#f39c12" (orange)
-//   statusConfig.IN_PROGRESS.color = "#3498db" (blue)
-//   statusConfig.COMPLETED.color = "#38ef7d" (green)
-//   statusConfig.QUALITY_DONE.color = "#9b59b6" (purple)
-// ============================================================
+
 const statusConfig = {
   PLANNED: {
     color: "#f39c12",
@@ -114,10 +90,7 @@ const statusConfig = {
 // REASON: Display and manage all work orders with status tracking
 // ============================================================
 const WorkOrderList = () => {
-  // ============================================================
-  // HOOK: useNavigate - navigate between pages
-  // REASON: Move to create page or quality inspection page
-  // ============================================================
+  
   const navigate = useNavigate();
 
   // ============================================================
@@ -160,11 +133,6 @@ const WorkOrderList = () => {
   // FUNCTION: allocateMaterials
   // SYNTAX: const allocateMaterials = (order) => { ... }
   // 
-  // LOGIC (3 Steps):
-  //   STEP 1: Validate - Check if enough inventory exists
-  //   STEP 2: Update - Deduct materials from inventory
-  //   STEP 3: Complete - Change order status to IN_PROGRESS
-  //
   // DETAILED FLOW:
   //   1. Get current inventory from storage
   //   2. Find inventory for this product

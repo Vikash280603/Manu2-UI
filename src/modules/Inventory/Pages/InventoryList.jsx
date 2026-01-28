@@ -46,10 +46,6 @@ import { generateInventory } from "../entities/inventory";
 // ============================================================
 const STORAGE_KEY = "manutrack_inventory_v2";
 
-// ============================================================
-// MAIN COMPONENT: InventoryList
-// REASON: Display and manage inventory for all products
-// ============================================================
 const InventoryList = () => {
   // ============================================================
   // STATE 1: inventory (List of all products' inventory)
@@ -95,12 +91,7 @@ const InventoryList = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedInventory));
   };
 
-  // ============================================================
-  // FUNCTION: getProductName
-  // SYNTAX: const getProductName = (productId) => { ... }
-  // LOGIC: Find product by ID and return its name
-  // REASON: Convert numeric product ID to readable product name
-  // ============================================================
+ 
   const getProductName = (productId) => {
     return products.find((p) => p.id === productId)?.name || "Unknown Product";
   };
@@ -159,7 +150,7 @@ const InventoryList = () => {
   // LOGIC: Create alert list for all materials below threshold
   // useMemo: Only recalculate when inventory changes
   // REASON: Efficient way to find all low-stock items
-  // ============================================================
+  // ============================================ ================
   const lowStockSummary = useMemo(() => {
     let alerts = [];
     inventory.forEach((inv) => {
