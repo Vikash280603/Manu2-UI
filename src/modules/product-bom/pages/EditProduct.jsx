@@ -6,7 +6,13 @@ import {
   useTheme, Avatar
 } from '@mui/material';
 
-// Icons
+/*
+  -------------------------
+  ICON IMPORTS (MUI ICONS)
+  -------------------------
+  These icons are used purely for visual clarity and UX improvement.
+  They help users quickly understand the meaning of fields and actions.
+*/
 import CloseIcon from '@mui/icons-material/Close';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
@@ -19,22 +25,76 @@ import BuildCircleOutlinedIcon from '@mui/icons-material/BuildCircleOutlined';
 
 import { useNavigate } from 'react-router-dom';
 
+/*
+  ============================================================================
+  EditProduct Component
+  ----------------------------------------------------------------------------
+  Purpose:
+  - Displays a modal dialog to edit product details
+  - Loads product data & BOM from localStorage
+  - Allows updating product name, category, status
+  - Shows associated BOM items (read-only here)
+  ============================================================================
+*/
 export default function EditProduct({ open, handleClose, productId, onSaveSuccess }) {
-  // -------------------------------------------------------------------------
-  //  LOGIC SECTION (UNCHANGED)
-  // -------------------------------------------------------------------------
-  const [formData, setFormData] = useState({ name: '', category: '', status: 'ACTIVE' });
-  const [productBom, setProductBom] = useState([]);
-  const navigate = useNavigate();
-  const theme = useTheme(); // For accessing theme colors safely
 
+  // -------------------------------------------------------------------------
+  // STATE MANAGEMENT
+  // -------------------------------------------------------------------------
+
+  /*
+    formData
+    --------
+    Holds editable product fields.
+    These values are bound to TextField / Select components.
+  */
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    status: 'ACTIVE'
+  });
+
+  /*
+    productBom
+    ----------
+    Stores BOM items related to the current product.
+    Used only for display in the right panel.
+  */
+  const [productBom, setProductBom] = useState([]);
+
+  /*
+    useNavigate
+    -----------
+    React Router hook used for programmatic navigation.
+    Used here to move to the BOM edit screen.
+  */
+  const navigate = useNavigate();
+
+  /*
+    useTheme
+    --------
+    Gives access to MUI theme values (colors, spacing, breakpoints).
+    Helps avoid hardcoding colors.
+  */
+  const theme = useTheme();
+
+  // -------------------------------------------------------------------------
+  // SIDE EFFECT: LOAD PRODUCT & BOM DATA WHEN MODAL OPENS
+  // -------------------------------------------------------------------------
   useEffect(() => {
     if (open && productId) {
       const pid = Number(productId);
 
-      // 1. Get Product Details
+      /*
+        1️⃣ LOAD PRODUCT DETAILS
+        -----------------------
+        - Fetch all products from localStorage
+        - Find the product matching productId
+        - Populate form fields
+      */
       const products = JSON.parse(localStorage.getItem('products')) || [];
       const product = products.find(p => Number(p.id) === pid);
+
       if (product) {
         setFormData({
           name: product.name || '',
@@ -43,64 +103,112 @@ export default function EditProduct({ open, handleClose, productId, onSaveSucces
         });
       }
 
-      // 2. Get BOM Details (Simple Filter)
+      /*
+        2️⃣ LOAD BOM DETAILS
+        -------------------
+        - Fetch all BOMs from localStorage
+        - Filter BOMs linked to this product
+        - Store them for display
+      */
       const allBoms = JSON.parse(localStorage.getItem('boms')) || [];
       const filtered = allBoms.filter(bom => Number(bom.id) === pid);
       setProductBom(filtered);
     }
   }, [open, productId]);
 
+  // -------------------------------------------------------------------------
+  // HANDLER: UPDATE FORM FIELD VALUES
+  // -------------------------------------------------------------------------
+  /*
+    Generic handler for TextField and Select components.
+    Uses the "name" attribute to update the correct field.
+  */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
+  // -------------------------------------------------------------------------
+  // HANDLER: SAVE UPDATED PRODUCT DETAILS
+  // -------------------------------------------------------------------------
+  /*
+    - Updates the product inside localStorage
+    - Keeps BOM unchanged
+    - Triggers refresh in parent component
+    - Closes modal
+  */
   const saveProductDetails = () => {
     const products = JSON.parse(localStorage.getItem('products')) || [];
-    const updated = products.map(p => 
-      Number(p.id) === Number(productId) ? { ...p, ...formData } : p
+
+    const updated = products.map(p =>
+      Number(p.id) === Number(productId)
+        ? { ...p, ...formData }
+        : p
     );
+
     localStorage.setItem('products', JSON.stringify(updated));
+
     if (onSaveSuccess) onSaveSuccess();
     handleClose();
   };
 
   // -------------------------------------------------------------------------
-  //  UI SECTION (MODERNIZED)
+  // UI SECTION
   // -------------------------------------------------------------------------
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose} 
-      fullWidth 
+    /*
+      Dialog
+      ------
+      MUI modal component.
+      - fullWidth + maxWidth control size
+      - PaperProps controls card appearance
+      - BackdropProps adds blur effect behind modal
+    */
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      fullWidth
       maxWidth="md"
       TransitionProps={{ timeout: 400 }}
-      PaperProps={{ 
-        sx: { 
+      PaperProps={{
+        sx: {
           borderRadius: '24px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           overflow: 'hidden'
-        } 
+        }
       }}
       BackdropProps={{
-        sx: { backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.1)' }
+        sx: {
+          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(0,0,0,0.1)'
+        }
       }}
     >
-      {/* HEADER */}
-      <DialogTitle component="div" sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        p: 3,
-        background: 'linear-gradient(to right, #f8f9fa, #ffffff)',
-        borderBottom: '1px solid #f0f0f0'
-      }}>
+
+      {/* ================= HEADER SECTION ================= */}
+      <DialogTitle
+        component="div"
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 3,
+          background: 'linear-gradient(to right, #f8f9fa, #ffffff)',
+          borderBottom: '1px solid #f0f0f0'
+        }}
+      >
+        {/* Left: Title & Icon */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>
             <EditOutlinedIcon />
           </Avatar>
+
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800 }}>
               Edit Product
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -108,161 +216,155 @@ export default function EditProduct({ open, handleClose, productId, onSaveSucces
             </Typography>
           </Box>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: 'text.secondary', '&:hover': { bgcolor: '#ffebee', color: 'error.main' } }}>
+
+        {/* Right: Close Button */}
+        <IconButton
+          onClick={handleClose}
+          sx={{
+            color: 'text.secondary',
+            '&:hover': { bgcolor: '#ffebee', color: 'error.main' }
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
+      {/* ================= CONTENT SECTION ================= */}
       <DialogContent sx={{ p: 0 }}>
-        <Grid container sx={{ height: '100%' }}>
-          
-          {/* LEFT SIDE: FORM INPUTS */}
+        <Grid container>
+
+          {/* ---------- LEFT PANEL: PRODUCT FORM ---------- */}
           <Grid item xs={12} md={6} sx={{ p: 4 }}>
-            <Typography variant="subtitle2" sx={{ 
-              textTransform: 'uppercase', 
-              letterSpacing: '1px', 
-              fontWeight: 700, 
-              color: 'text.secondary', 
-              mb: 3 
-            }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: 700,
+                color: 'text.secondary',
+                mb: 3
+              }}
+            >
               General Information
             </Typography>
 
             <Stack spacing={3}>
-              <TextField 
-                label="Product Name" 
-                name="name" 
-                value={formData.name} 
-                onChange={handleInputChange} 
-                fullWidth 
-                variant="outlined"
+              {/* Product Name Input */}
+              <TextField
+                label="Product Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Inventory2OutlinedIcon color="action" fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              
-              <TextField 
-                label="Category" 
-                name="category" 
-                value={formData.category} 
-                onChange={handleInputChange} 
-                fullWidth 
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CategoryOutlinedIcon color="action" fontSize="small" />
+                      <Inventory2OutlinedIcon fontSize="small" />
                     </InputAdornment>
                   ),
                 }}
               />
 
+              {/* Category Input */}
+              <TextField
+                label="Category"
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CategoryOutlinedIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              {/* Status Dropdown */}
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
-                <Select 
-                  name="status" 
-                  value={formData.status} 
-                  label="Status" 
+                <Select
+                  name="status"
+                  value={formData.status}
+                  label="Status"
                   onChange={handleInputChange}
                   startAdornment={
                     <InputAdornment position="start" sx={{ ml: 1 }}>
-                      <FactCheckOutlinedIcon color="action" fontSize="small" />
+                      <FactCheckOutlinedIcon fontSize="small" />
                     </InputAdornment>
                   }
                 >
                   <MenuItem value="ACTIVE">
-                    <Chip label="ACTIVE" color="success" size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                    <Chip label="ACTIVE" color="success" size="small" />
                   </MenuItem>
                   <MenuItem value="DISCONTINUED">
-                    <Chip label="DISCONTINUED" color="error" size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                    <Chip label="DISCONTINUED" color="error" size="small" />
                   </MenuItem>
                 </Select>
               </FormControl>
             </Stack>
           </Grid>
 
-          {/* RIGHT SIDE: BOM */}
-          <Grid item xs={12} md={6} sx={{ 
-            bgcolor: '#fafafa', 
-            p: 4, 
-            borderLeft: { md: '1px solid #eee' },
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          {/* ---------- RIGHT PANEL: BOM LIST ---------- */}
+          <Grid
+            item
+            xs={12}
+            md={6}
+            sx={{
+              bgcolor: '#fafafa',
+              p: 4,
+              borderLeft: { md: '1px solid #eee' },
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* BOM Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <LayersOutlinedIcon color="primary" fontSize="small" />
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                  BILL OF MATERIALS
-                </Typography>
+                <Typography fontWeight={700}>BILL OF MATERIALS</Typography>
               </Box>
-              <Chip label={`${productBom.length} Items`} size="small" sx={{ bgcolor: 'white', fontWeight: 600, border: '1px solid #eee' }} />
+              <Chip label={`${productBom.length} Items`} size="small" />
             </Box>
-            
-            <Box sx={{ 
-              flexGrow: 1, 
-              overflowY: 'auto', 
-              maxHeight: '300px', 
-              pr: 1,
-              '&::-webkit-scrollbar': { width: '4px' },
-              '&::-webkit-scrollbar-thumb': { bgcolor: '#ddd', borderRadius: '4px' }
-            }}>
+
+            {/* BOM Items */}
+            <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
               {productBom.length > 0 ? (
                 productBom.map((item, index) => (
-                  <Paper 
-                    key={index} 
+                  <Paper
+                    key={index}
                     elevation={0}
-                    sx={{ 
-                      p: 2, 
-                      mb: 1.5, 
-                      borderRadius: '12px', 
+                    sx={{
+                      p: 2,
+                      mb: 1.5,
+                      borderRadius: '12px',
                       border: '1px solid #e0e0e0',
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      transition: 'all 0.2s',
-                      '&:hover': { transform: 'translateX(4px)', borderColor: 'primary.main' }
+                      justifyContent: 'space-between'
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main' }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                        {item.materialName}
-                      </Typography>
-                    </Box>
-                    <Chip 
-                      label={`x ${item.quantity}`} 
-                      size="small" 
-                      sx={{ borderRadius: '6px', height: '24px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'primary.50', color: 'primary.main' }} 
-                    />
+                    <Typography fontWeight={600}>
+                      {item.materialName}
+                    </Typography>
+                    <Chip label={`x ${item.quantity}`} size="small" />
                   </Paper>
                 ))
               ) : (
-                <Box sx={{ textAlign: 'center', py: 5, opacity: 0.6 }}>
-                  <LayersOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
-                  <Typography variant="body2" color="text.secondary">No materials configured.</Typography>
-                </Box>
+                <Typography align="center" color="text.secondary">
+                  No materials configured.
+                </Typography>
               )}
             </Box>
-            
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              onClick={() => navigate(`/products/${productId}/edit-bom`)} 
+
+            {/* Navigate to BOM Editor */}
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() => navigate(`/products/${productId}/edit-bom`)}
               startIcon={<BuildCircleOutlinedIcon />}
-              endIcon={<ArrowForwardIosRoundedIcon sx={{ fontSize: '14px !important' }} />}
-              sx={{ 
-                mt: 3, 
-                borderRadius: '12px', 
-                textTransform: 'none', 
-                fontWeight: 600,
-                borderStyle: 'dashed',
-                borderWidth: '2px',
-                '&:hover': { borderStyle: 'dashed', borderWidth: '2px', bgcolor: 'primary.50' }
-              }}
+              endIcon={<ArrowForwardIosRoundedIcon />}
+              sx={{ mt: 3 }}
             >
               Modify Structure
             </Button>
@@ -270,35 +372,15 @@ export default function EditProduct({ open, handleClose, productId, onSaveSucces
         </Grid>
       </DialogContent>
 
+      {/* ================= FOOTER ACTIONS ================= */}
       <Divider />
 
-      <DialogActions sx={{ p: 3, bgcolor: '#ffffff' }}>
-        <Button 
-          onClick={handleClose} 
-          sx={{ 
-            color: 'text.secondary', 
-            fontWeight: 600, 
-            textTransform: 'none',
-            px: 3
-          }}
-        >
-          Cancel
-        </Button>
-        <Button 
-          variant="contained" 
-          onClick={saveProductDetails} 
+      <DialogActions sx={{ p: 3 }}>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button
+          variant="contained"
+          onClick={saveProductDetails}
           startIcon={<SaveRoundedIcon />}
-          disableElevation
-          sx={{ 
-            borderRadius: '10px', 
-            px: 4, 
-            py: 1, 
-            fontWeight: 700, 
-            textTransform: 'none',
-            background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
-            boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-            '&:hover': { boxShadow: '0 6px 10px 4px rgba(33, 203, 243, .3)' }
-          }}
         >
           Save Changes
         </Button>

@@ -1,3 +1,6 @@
+// ============================================================
+// IMPORTS: React hooks and Material-UI components
+// ============================================================
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -15,9 +18,13 @@ import {
   IconButton
 } from "@mui/material";
 
+// Import product data
 import { products } from "../../entities/product";
+
+// Import quality check retrieval function
 import { getQualityChecks } from "../entities/quality";
 
+// Material-UI Icons
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -28,24 +35,58 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ScienceIcon from '@mui/icons-material/Science';
 
+// ============================================================
+// MAIN COMPONENT: QualityCheckList
+// REASON: Display all completed quality inspections with statistics
+// ============================================================
 const QualityCheckList = () => {
+  // ============================================================
+  // STATE: quality (List of all quality check records)
+  // SYNTAX: const [quality, setQuality] = useState([]);
+  // REASON: Store all quality inspection records fetched from storage
+  // ============================================================
   const [quality, setQuality] = useState([]);
 
+  // ============================================================
+  // HOOK: useEffect (Load quality checks on mount)
+  // LOGIC: Runs once when component loads ([] dependency)
+  // REASON: Fetch all quality inspections from storage on page open
+  // ============================================================
   useEffect(() => {
     setQuality(getQualityChecks());
   }, []);
 
-  // Statistics
+  // ============================================================
+  // STATISTICS: Calculate summary numbers
+  // REASON: Show dashboard overview of quality results
+  // ============================================================
   const stats = {
+    // Total number of quality inspections performed
     total: quality.length,
+
+    // Count of inspections that PASSED (>= 90% success rate)
     passed: quality.filter(q => q.result === "PASS").length,
+
+    // Count of inspections that FAILED (< 90% success rate)
     failed: quality.filter(q => q.result === "FAIL").length,
+
+    // Average success rate across all inspections
+    // LOGIC:
+    //   - quality.reduce(...) = sum all success rates
+    //   - / quality.length = divide by number of inspections
+    //   - .toFixed(1) = round to 1 decimal place
+    // EXAMPLE: If 3 inspections with 90%, 95%, 85% rates
+    //   → (90 + 95 + 85) / 3 = 90.0%
     avgSuccessRate: quality.length > 0 
       ? (quality.reduce((acc, q) => acc + q.successRate, 0) / quality.length).toFixed(1)
       : 0
   };
 
-  // Empty State
+  // ============================================================
+  // EMPTY STATE: Show when no quality checks exist
+  // LOGIC: If quality array is empty, show this UI instead
+  // REASON: Guide user that quality inspections will appear after work completion
+  // ============================================================
   if (!quality.length) {
     return (
       <Box
@@ -69,6 +110,7 @@ const QualityCheckList = () => {
               textAlign: "center"
             }}
           >
+            {/* Empty state icon */}
             <Box
               sx={{
                 width: 120,
@@ -84,6 +126,8 @@ const QualityCheckList = () => {
             >
               <ScienceIcon sx={{ fontSize: 64, color: "#667eea" }} />
             </Box>
+
+            {/* Empty state text */}
             <Typography variant="h4" fontWeight="700" mb={2} color="text.primary">
               No Quality Checks Yet
             </Typography>
@@ -96,6 +140,9 @@ const QualityCheckList = () => {
     );
   }
 
+  // ============================================================
+  // MAIN UI: When quality checks exist
+  // ============================================================
   return (
     <Box
       sx={{
@@ -105,7 +152,8 @@ const QualityCheckList = () => {
       }}
     >
       <Container maxWidth="xl">
-        {/* Header Section */}
+        
+        {/* ===== HEADER SECTION ===== */}
         <Paper
           elevation={0}
           sx={{
@@ -122,6 +170,7 @@ const QualityCheckList = () => {
             alignItems={{ xs: "flex-start", md: "center" }}
             spacing={2}
           >
+            {/* Title section */}
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -140,13 +189,16 @@ const QualityCheckList = () => {
                 <Typography variant="h4" fontWeight="700" color="text.primary">
                   Quality Inspections
                 </Typography>
+                {/* Show count of inspection records */}
                 <Typography variant="body2" color="text.secondary">
                   {quality.length} inspection records
                 </Typography>
               </Box>
             </Stack>
 
+            {/* Control buttons section */}
             <Stack direction="row" spacing={2}>
+              {/* Refresh button */}
               <IconButton
                 sx={{
                   background: alpha("#667eea", 0.1),
@@ -156,6 +208,8 @@ const QualityCheckList = () => {
               >
                 <RefreshIcon />
               </IconButton>
+
+              {/* Filter button */}
               <IconButton
                 sx={{
                   background: alpha("#667eea", 0.1),
@@ -169,8 +223,10 @@ const QualityCheckList = () => {
           </Stack>
         </Paper>
 
-        {/* Statistics Dashboard */}
+        {/* ===== STATISTICS DASHBOARD ===== */}
         <Grid container spacing={2} mb={3}>
+          
+          {/* Total Inspections Card */}
           <Grid item xs={6} md={3}>
             <Paper
               sx={{
@@ -192,6 +248,7 @@ const QualityCheckList = () => {
             </Paper>
           </Grid>
 
+          {/* Passed Inspections Card */}
           <Grid item xs={6} md={3}>
             <Paper
               sx={{
@@ -210,6 +267,7 @@ const QualityCheckList = () => {
                   {stats.passed}
                 </Typography>
               </Stack>
+              {/* Decorative circle background */}
               <Box
                 sx={{
                   position: "absolute",
@@ -224,6 +282,7 @@ const QualityCheckList = () => {
             </Paper>
           </Grid>
 
+          {/* Failed Inspections Card */}
           <Grid item xs={6} md={3}>
             <Paper
               sx={{
@@ -242,6 +301,7 @@ const QualityCheckList = () => {
                   {stats.failed}
                 </Typography>
               </Stack>
+              {/* Decorative circle background */}
               <Box
                 sx={{
                   position: "absolute",
@@ -256,6 +316,7 @@ const QualityCheckList = () => {
             </Paper>
           </Grid>
 
+          {/* Average Success Rate Card */}
           <Grid item xs={6} md={3}>
             <Paper
               sx={{
@@ -278,12 +339,16 @@ const QualityCheckList = () => {
           </Grid>
         </Grid>
 
-        {/* Quality Check Cards */}
+        {/* ===== QUALITY CHECK CARDS GRID ===== */}
         <Grid container spacing={3}>
           {quality.map(qc => {
+            // Get product name from ID
             const product = products.find(p => p.id === qc.productId)?.name || "Unknown";
+
+            // Determine if passed or failed
             const isPassed = qc.result === "PASS";
             
+            // Get styling config based on result
             const resultConfig = isPassed ? {
               color: "#38ef7d",
               bgColor: alpha("#38ef7d", 0.1),
@@ -314,12 +379,13 @@ const QualityCheckList = () => {
                     }
                   }}
                 >
-                  {/* Status Gradient Bar */}
+                  {/* Color bar indicating PASS/FAIL status */}
                   <Box sx={{ height: 6, background: resultConfig.gradient }} />
 
                   <CardContent sx={{ p: 3 }}>
                     <Stack spacing={2.5}>
-                      {/* Header */}
+                      
+                      {/* ===== HEADER: Product name and result badge ===== */}
                       <Stack
                         direction="row"
                         justifyContent="space-between"
@@ -327,14 +393,17 @@ const QualityCheckList = () => {
                         spacing={1}
                       >
                         <Box flex={1}>
+                          {/* Product name */}
                           <Typography variant="h6" fontWeight="700" color="text.primary">
                             {product}
                           </Typography>
+                          {/* QC ID */}
                           <Typography variant="caption" color="text.secondary">
                             QC #{qc.qcId}
                           </Typography>
                         </Box>
 
+                        {/* PASS/FAIL badge */}
                         <Chip
                           icon={resultConfig.icon}
                           label={qc.result}
@@ -349,7 +418,7 @@ const QualityCheckList = () => {
                         />
                       </Stack>
 
-                      {/* Work Order Reference */}
+                      {/* ===== WORK ORDER REFERENCE ===== */}
                       <Paper
                         sx={{
                           p: 2,
@@ -363,6 +432,7 @@ const QualityCheckList = () => {
                           <Typography variant="body2" fontWeight="600" color="text.secondary">
                             Work Order
                           </Typography>
+                          {/* Link to work order */}
                           <Typography variant="body2" fontWeight="700" color="#667eea">
                             #{qc.workOrderId}
                           </Typography>
@@ -371,13 +441,16 @@ const QualityCheckList = () => {
 
                       <Divider />
 
-                      {/* Metrics */}
+                      {/* ===== QUALITY METRICS ===== */}
                       <Stack spacing={2}>
+                        
+                        {/* Acceptance Rate Progress Bar */}
                         <Box>
                           <Stack direction="row" justifyContent="space-between" mb={1}>
                             <Typography variant="body2" color="text.secondary">
                               Acceptance Rate
                             </Typography>
+                            {/* Show percentage in matching color */}
                             <Typography variant="body2" fontWeight="700" color={resultConfig.color}>
                               {qc.successRate}%
                             </Typography>
@@ -397,6 +470,7 @@ const QualityCheckList = () => {
                           />
                         </Box>
 
+                        {/* Quantity Breakdown: Accepted / Total / Rejected */}
                         <Stack
                           direction="row"
                           spacing={2}
@@ -406,6 +480,7 @@ const QualityCheckList = () => {
                             background: alpha(resultConfig.color, 0.05)
                           }}
                         >
+                          {/* Accepted count */}
                           <Box flex={1}>
                             <Typography variant="caption" color="text.secondary">
                               Accepted
@@ -414,7 +489,11 @@ const QualityCheckList = () => {
                               {qc.acceptedQty}
                             </Typography>
                           </Box>
+
+                          {/* Vertical divider */}
                           <Divider orientation="vertical" flexItem />
+
+                          {/* Total count */}
                           <Box flex={1}>
                             <Typography variant="caption" color="text.secondary">
                               Total
@@ -423,12 +502,21 @@ const QualityCheckList = () => {
                               {qc.totalQty}
                             </Typography>
                           </Box>
+
+                          {/* Vertical divider */}
                           <Divider orientation="vertical" flexItem />
+
+                          {/* Rejected count */}
                           <Box flex={1}>
                             <Typography variant="caption" color="text.secondary">
                               Rejected
                             </Typography>
-                            <Typography variant="h6" fontWeight="700" color={isPassed ? "text.secondary" : resultConfig.color}>
+                            {/* Color rejected count based on result */}
+                            <Typography 
+                              variant="h6" 
+                              fontWeight="700" 
+                              color={isPassed ? "text.secondary" : resultConfig.color}
+                            >
                               {qc.totalQty - qc.acceptedQty}
                             </Typography>
                           </Box>
@@ -437,7 +525,7 @@ const QualityCheckList = () => {
 
                       <Divider />
 
-                      {/* Remarks */}
+                      {/* ===== INSPECTOR REMARKS (if exists) ===== */}
                       {qc.remarks && (
                         <Paper
                           sx={{
@@ -456,10 +544,11 @@ const QualityCheckList = () => {
                         </Paper>
                       )}
 
-                      {/* Inspection Date */}
+                      {/* ===== INSPECTION DATE ===== */}
                       <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
                         <CalendarTodayIcon sx={{ fontSize: 14, color: "text.secondary" }} />
                         <Typography variant="caption" color="text.secondary">
+                          {/* Format date as "January 15, 2024" */}
                           Inspected on {new Date(qc.inspectionDate).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
@@ -479,4 +568,7 @@ const QualityCheckList = () => {
   );
 };
 
+// ============================================================
+// EXPORT: Make component available
+// ============================================================
 export default QualityCheckList;

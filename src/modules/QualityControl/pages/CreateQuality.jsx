@@ -1,4 +1,6 @@
-
+// ============================================================
+// IMPORTS: React hooks and Material-UI components
+// ============================================================
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -18,11 +20,18 @@ import {
   LinearProgress,
   InputAdornment
 } from "@mui/material";
+
+// React Router hooks - get work order ID from URL and navigate
 import { useParams, useNavigate } from "react-router-dom";
+
+// Import quality check and work order functions
 import { getQualityChecks, saveQualityChecks, generateQcId } from "../entities/quality";
 import { getWorkOrders, saveWorkOrders } from "../../ProductionScheduling/entities/workOrders";
+
+// Import product data
 import { products } from "../../entities/product";
 
+// Material-UI Icons
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -34,16 +43,58 @@ import ScienceIcon from '@mui/icons-material/Science';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import WarningIcon from '@mui/icons-material/Warning';
 
+// ============================================================
+// MAIN COMPONENT: QualityCreate
+// REASON: Form to inspect and approve/reject completed work orders
+// ============================================================
 const QualityCreate = () => {
+  // ============================================================
+  // HOOK: useParams
+  // SYNTAX: const { workOrderId } = useParams();
+  // LOGIC: Extract workOrderId from URL (e.g., /quality/create/uuid-123)
+  // REASON: Know which work order to inspect
+  // ============================================================
   const { workOrderId } = useParams();
+
+  // ============================================================
+  // HOOK: useNavigate
+  // REASON: Navigate back to work orders page after submission
+  // ============================================================
   const navigate = useNavigate();
 
+  // ============================================================
+  // GET DATA: Fetch work orders from storage
+  // REASON: Find the specific work order being inspected
+  // ============================================================
   const workOrders = getWorkOrders();
+
+  // ============================================================
+  // FIND ORDER: Get the specific work order by ID
+  // SYNTAX: const order = workOrders.find(w => w.workOrderId == workOrderId);
+  // LOGIC: Search array for matching work order ID
+  // REASON: Get details of the work order being inspected
+  // ============================================================
   const order = workOrders.find(w => w.workOrderId == workOrderId);
 
+  // ============================================================
+  // STATE 1: accepted (Number of units that passed inspection)
+  // SYNTAX: const [accepted, setAccepted] = useState(0);
+  // REASON: Inspector enters how many units are acceptable
+  // ============================================================
   const [accepted, setAccepted] = useState(0);
+
+  // ============================================================
+  // STATE 2: remarks (Inspector's notes and observations)
+  // SYNTAX: const [remarks, setRemarks] = useState("");
+  // REASON: Inspector documents defects, issues, or positive notes
+  // ============================================================
   const [remarks, setRemarks] = useState("");
 
+  // ============================================================
+  // ERROR STATE: If work order not found
+  // LOGIC: If order doesn't exist, show error message
+  // REASON: Prevent errors from processing invalid orders
+  // ============================================================
   if (!order) {
     return (
       <Box
@@ -67,6 +118,7 @@ const QualityCreate = () => {
               textAlign: "center"
             }}
           >
+            {/* Error icon */}
             <Box
               sx={{
                 width: 120,
@@ -82,12 +134,16 @@ const QualityCreate = () => {
             >
               <WarningIcon sx={{ fontSize: 64, color: "#ff6a00" }} />
             </Box>
+            
+            {/* Error message */}
             <Typography variant="h4" fontWeight="700" mb={2} color="text.primary">
               Invalid Work Order
             </Typography>
             <Typography variant="body1" color="text.secondary" mb={3}>
               The work order you're looking for doesn't exist or has been removed
             </Typography>
+            
+            {/* Back button */}
             <Button
               variant="contained"
               onClick={() => navigate("/workorder")}
@@ -108,12 +164,51 @@ const QualityCreate = () => {
     );
   }
 
+  // ============================================================
+  // COMPUTED VALUE 1: rejected
+  // SYNTAX: const rejected = order.quantity - accepted;
+  // LOGIC: Total quantity minus accepted units = rejected units
+  // EXAMPLE: If made 100 units, accepted 95 → rejected = 5
+  // REASON: Calculate how many units failed inspection
+  // ============================================================
   const rejected = order.quantity - accepted;
+
+  // ============================================================
+  // COMPUTED VALUE 2: successRate
+  // SYNTAX: const successRate = order.quantity > 0 ? Math.round((accepted / order.quantity) * 100) : 0;
+  // LOGIC:
+  //   - (accepted / order.quantity) * 100 = percentage
+  //   - Math.round() = round to nearest whole number
+  //   - ? : = if order.quantity > 0, calculate rate, else use 0
+  // EXAMPLE: If accepted=90, total=100 → (90/100)*100 = 90%
+  // REASON: Show quality percentage for easy understanding
+  // ============================================================
   const successRate = order.quantity > 0 ? Math.round((accepted / order.quantity) * 100) : 0;
+
+  // ============================================================
+  // COMPUTED VALUE 3: result (PASS or FAIL determination)
+  // SYNTAX: const result = successRate >= 90 ? "PASS" : "FAIL";
+  // LOGIC:
+  //   - If success rate >= 90% → "PASS"
+  //   - Otherwise → "FAIL"
+  // REASON: Auto-determine quality result based on threshold
+  // ============================================================
   const result = successRate >= 90 ? "PASS" : "FAIL";
 
+  // ============================================================
+  // COMPUTED VALUE 4: productName
+  // SYNTAX: const productName = products.find(p => p.id === order.productId)?.name || "Unknown";
+  // LOGIC: Find product by ID and get its name
+  // REASON: Display readable product name instead of ID
+  // ============================================================
   const productName = products.find(p => p.id === order.productId)?.name || "Unknown";
 
+  // ============================================================
+  // COMPUTED VALUE 5: resultConfig
+  // SYNTAX: const resultConfig = result === "PASS" ? {...} : {...};
+  // LOGIC: Different colors and styling based on PASS or FAIL
+  // REASON: Visually indicate quality result status
+  // ============================================================
   const resultConfig = result === "PASS" ? {
     color: "#38ef7d",
     bgColor: alpha("#38ef7d", 0.1),
@@ -128,33 +223,65 @@ const QualityCreate = () => {
     icon: <CancelIcon />
   };
 
+  // ============================================================
+  // FUNCTION: submitQuality
+  // SYNTAX: const submitQuality = () => { ... }
+  //
+  // LOGIC (3 Steps):
+  //   STEP 1: Create quality check record
+  //   STEP 2: Save to quality checks storage
+  //   STEP 3: Update work order status to QUALITY_DONE
+  //
+  // DETAILED FLOW:
+  //   1. Generate unique QC ID (timestamp-based)
+  //   2. Create object with all inspection details
+  //   3. Get existing quality checks from storage
+  //   4. Add new check to the list
+  //   5. Save updated list to storage
+  //   6. Update work order status from COMPLETED → QUALITY_DONE
+  //   7. Save updated work orders to storage
+  //   8. Navigate back to work orders page
+  //
+  // REASON: Save inspection results and mark order as complete
+  // ============================================================
   const submitQuality = () => {
+    // Create new quality check record
     const newQc = {
-      qcId: generateQcId(),
-      workOrderId: order.workOrderId,
-      productId: order.productId,
-      inspectionDate: new Date().toISOString().split("T")[0],
-      totalQty: order.quantity,
-      acceptedQty: accepted,
-      rejectedQty: rejected,
-      successRate,
-      result,
-      remarks
+      qcId: generateQcId(),              // Generate unique ID (e.g., "QC-1704067245123")
+      workOrderId: order.workOrderId,    // Link to work order
+      productId: order.productId,        // Link to product
+      inspectionDate: new Date().toISOString().split("T")[0], // Today's date (YYYY-MM-DD)
+      totalQty: order.quantity,          // Total units produced
+      acceptedQty: accepted,             // Units that passed
+      rejectedQty: rejected,             // Units that failed
+      successRate,                       // Percentage passed (0-100)
+      result,                            // "PASS" or "FAIL"
+      remarks                            // Inspector notes
     };
 
+    // STEP 1: Get existing quality checks
     const existing = getQualityChecks();
+
+    // STEP 2: Add new check and save
     saveQualityChecks([...existing, newQc]);
 
+    // STEP 3: Update work order status
     const updatedOrders = workOrders.map(o =>
       o.workOrderId === order.workOrderId
-        ? { ...o, status: "QUALITY_DONE" }
+        ? { ...o, status: "QUALITY_DONE" }  // Change status to complete
         : o
     );
 
+    // Save updated work orders
     saveWorkOrders(updatedOrders);
+
+    // Navigate back to work orders page
     navigate("/workorder");
   };
 
+  // ============================================================
+  // RETURN: The UI
+  // ============================================================
   return (
     <Box
       sx={{
@@ -164,7 +291,8 @@ const QualityCreate = () => {
       }}
     >
       <Container maxWidth="lg">
-        {/* Header Section */}
+        
+        {/* ===== HEADER SECTION ===== */}
         <Paper
           elevation={0}
           sx={{
@@ -176,6 +304,7 @@ const QualityCreate = () => {
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
+            {/* Back button */}
             <IconButton
               onClick={() => navigate("/workorder")}
               sx={{
@@ -189,6 +318,7 @@ const QualityCreate = () => {
               <ArrowBackIcon />
             </IconButton>
             
+            {/* Icon */}
             <Box
               sx={{
                 width: 48,
@@ -203,6 +333,7 @@ const QualityCreate = () => {
               <VerifiedIcon sx={{ color: "white", fontSize: 28 }} />
             </Box>
             
+            {/* Title */}
             <Box flex={1}>
               <Typography variant="h4" fontWeight="700" color="text.primary">
                 Quality Inspection
@@ -212,6 +343,7 @@ const QualityCreate = () => {
               </Typography>
             </Box>
 
+            {/* Status badge */}
             <Chip
               icon={<ScienceIcon />}
               label="INSPECTION"
@@ -226,8 +358,10 @@ const QualityCreate = () => {
           </Stack>
         </Paper>
 
+        {/* ===== MAIN CONTENT: Form (Left) + Results Preview (Right) ===== */}
         <Grid container spacing={3}>
-          {/* Form Section */}
+          
+          {/* ===== LEFT SECTION: Inspection Form ===== */}
           <Grid item xs={12} md={7}>
             <Paper
               elevation={0}
@@ -243,7 +377,8 @@ const QualityCreate = () => {
               </Typography>
 
               <Stack spacing={3}>
-                {/* Work Order Info */}
+                
+                {/* ===== WORK ORDER INFO ===== */}
                 <Paper
                   sx={{
                     p: 3,
@@ -267,9 +402,11 @@ const QualityCreate = () => {
                       <AssignmentIcon sx={{ color: "#667eea" }} />
                     </Box>
                     <Box>
+                      {/* Product name */}
                       <Typography variant="h6" fontWeight="700" color="text.primary">
                         {productName}
                       </Typography>
+                      {/* Work order ID */}
                       <Typography variant="caption" color="text.secondary">
                         Work Order #{order.workOrderId}
                       </Typography>
@@ -277,7 +414,7 @@ const QualityCreate = () => {
                   </Stack>
                 </Paper>
 
-                {/* Inspection Date */}
+                {/* ===== INSPECTION DATE (Read-only) ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Inspection Date
@@ -305,7 +442,7 @@ const QualityCreate = () => {
                   />
                 </Box>
 
-                {/* Total Quantity */}
+                {/* ===== TOTAL QUANTITY (Read-only) ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Total Production Quantity
@@ -340,7 +477,7 @@ const QualityCreate = () => {
 
                 <Divider />
 
-                {/* Accepted Quantity */}
+                {/* ===== ACCEPTED QUANTITY (User Input) ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Accepted Quantity
@@ -349,6 +486,7 @@ const QualityCreate = () => {
                     fullWidth
                     type="number"
                     value={accepted}
+                    // Ensure value stays between 0 and total quantity
                     inputProps={{ min: 0, max: order.quantity }}
                     onChange={(e) =>
                       setAccepted(Math.min(order.quantity, Math.max(0, Number(e.target.value))))
@@ -383,7 +521,7 @@ const QualityCreate = () => {
                   />
                 </Box>
 
-                {/* Rejected Quantity */}
+                {/* ===== REJECTED QUANTITY (Auto-calculated) ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Rejected Quantity
@@ -418,7 +556,7 @@ const QualityCreate = () => {
 
                 <Divider />
 
-                {/* Remarks */}
+                {/* ===== INSPECTOR REMARKS ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Inspector Remarks
@@ -450,14 +588,14 @@ const QualityCreate = () => {
 
                 <Divider />
 
-                {/* Submit Button */}
+                {/* ===== SUBMIT BUTTON ===== */}
                 <Button
                   fullWidth
                   variant="contained"
                   size="large"
                   startIcon={<VerifiedIcon />}
                   onClick={submitQuality}
-                  disabled={accepted === 0}
+                  disabled={accepted === 0} 
                   sx={{
                     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     borderRadius: 3,
@@ -481,10 +619,11 @@ const QualityCreate = () => {
             </Paper>
           </Grid>
 
-          {/* Live Results Preview */}
+          {/* ===== RIGHT SECTION: Live Results Preview ===== */}
           <Grid item xs={12} md={5}>
             <Stack spacing={3}>
-              {/* Result Card */}
+              
+              {/* ===== RESULT CARD ===== */}
               <Card
                 sx={{
                   borderRadius: 4,
@@ -494,10 +633,13 @@ const QualityCreate = () => {
                   border: `2px solid ${resultConfig.borderColor}`
                 }}
               >
+                {/* Color bar indicating PASS/FAIL */}
                 <Box sx={{ height: 6, background: resultConfig.gradient }} />
                 
                 <CardContent sx={{ p: 3 }}>
                   <Stack spacing={2.5}>
+                    
+                    {/* Title and result badge */}
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography variant="h6" fontWeight="700" color="text.primary">
                         Inspection Result
@@ -518,15 +660,18 @@ const QualityCreate = () => {
 
                     <Divider />
 
+                    {/* Success Rate */}
                     <Box>
                       <Stack direction="row" justifyContent="space-between" mb={1}>
                         <Typography variant="body2" color="text.secondary">
                           Success Rate
                         </Typography>
+                        {/* Show percentage in matching color */}
                         <Typography variant="h5" fontWeight="800" color={resultConfig.color}>
                           {successRate}%
                         </Typography>
                       </Stack>
+                      {/* Progress bar showing quality percentage */}
                       <LinearProgress
                         variant="determinate"
                         value={successRate}
@@ -540,6 +685,7 @@ const QualityCreate = () => {
                           }
                         }}
                       />
+                      {/* Show "Excellent Quality" message if >= 90% */}
                       {successRate >= 90 && (
                         <Stack direction="row" spacing={0.5} alignItems="center" mt={1}>
                           <TrendingUpIcon sx={{ fontSize: 16, color: resultConfig.color }} />
@@ -552,8 +698,9 @@ const QualityCreate = () => {
 
                     <Divider />
 
-                    {/* Metrics Grid */}
+                    {/* ===== METRICS: Accepted, Total, Rejected ===== */}
                     <Grid container spacing={2}>
+                      {/* Accepted count */}
                       <Grid item xs={4}>
                         <Paper
                           sx={{
@@ -571,6 +718,8 @@ const QualityCreate = () => {
                           </Typography>
                         </Paper>
                       </Grid>
+
+                      {/* Total count */}
                       <Grid item xs={4}>
                         <Paper
                           sx={{
@@ -588,6 +737,8 @@ const QualityCreate = () => {
                           </Typography>
                         </Paper>
                       </Grid>
+
+                      {/* Rejected count */}
                       <Grid item xs={4}>
                         <Paper
                           sx={{
@@ -610,7 +761,7 @@ const QualityCreate = () => {
                 </CardContent>
               </Card>
 
-              {/* Quality Standards Info */}
+              {/* ===== QUALITY STANDARDS INFO ===== */}
               <Paper
                 sx={{
                   background: "rgba(255, 255, 255, 0.95)",
@@ -619,6 +770,7 @@ const QualityCreate = () => {
                   p: 3
                 }}
               >
+                {/* Header */}
                 <Stack direction="row" spacing={2} mb={2}>
                   <Box
                     sx={{
@@ -640,7 +792,9 @@ const QualityCreate = () => {
                   </Box>
                 </Stack>
 
+                {/* Standards list */}
                 <Stack spacing={1.5}>
+                  {/* PASS criteria */}
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Box
                       sx={{
@@ -654,6 +808,8 @@ const QualityCreate = () => {
                       <strong>PASS:</strong> Success rate ≥ 90%
                     </Typography>
                   </Stack>
+                  
+                  {/* FAIL criteria */}
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Box
                       sx={{
@@ -667,7 +823,10 @@ const QualityCreate = () => {
                       <strong>FAIL:</strong> Success rate &lt; 90%
                     </Typography>
                   </Stack>
+                  
                   <Divider sx={{ my: 1 }} />
+                  
+                  {/* Note about auto-calculation */}
                   <Typography variant="caption" color="text.secondary" fontStyle="italic">
                     Results are automatically calculated based on acceptance criteria
                   </Typography>
@@ -681,4 +840,7 @@ const QualityCreate = () => {
   );
 };
 
+// ============================================================
+// EXPORT: Make component available
+// ============================================================
 export default QualityCreate;
