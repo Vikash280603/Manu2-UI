@@ -253,26 +253,7 @@ const InventoryList = () => {
             </Stack>
 
             {/* Refresh and Filter buttons */}
-            <Stack direction="row" spacing={2}>
-              <IconButton
-                sx={{
-                  background: alpha("#667eea", 0.1),
-                  color: "#667eea",
-                  "&:hover": { background: alpha("#667eea", 0.2) }
-                }}
-              >
-                <RefreshIcon />
-              </IconButton>
-              <IconButton
-                sx={{
-                  background: alpha("#667eea", 0.1),
-                  color: "#667eea",
-                  "&:hover": { background: alpha("#667eea", 0.2) }
-                }}
-              >
-                <FilterListIcon />
-              </IconButton>
-            </Stack>
+            
           </Stack>
         </Paper>
 
