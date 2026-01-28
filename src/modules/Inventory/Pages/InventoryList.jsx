@@ -1,3 +1,6 @@
+// ============================================================
+// IMPORTS: React hooks and Material-UI components
+// ============================================================
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Card,
@@ -20,7 +23,7 @@ import {
   Button
 } from "@mui/material";
 
-// Icons
+// Material-UI Icons - visual indicators for different actions
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
@@ -32,35 +35,87 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
+// Import data sources
 import { products } from "../../entities/product";
 import { generateInventory } from "../entities/inventory";
 
+// ============================================================
+// CONSTANT: Storage key for localStorage
+// SYNTAX: const STORAGE_KEY = "manutrack_inventory_v2";
+// REASON: Unique identifier to save/retrieve inventory data from browser
+// ============================================================
 const STORAGE_KEY = "manutrack_inventory_v2";
 
+// ============================================================
+// MAIN COMPONENT: InventoryList
+// REASON: Display and manage inventory for all products
+// ============================================================
 const InventoryList = () => {
+  // ============================================================
+  // STATE 1: inventory (List of all products' inventory)
+  // REASON: Stores inventory data fetched/generated on load
+  // ============================================================
   const [inventory, setInventory] = useState([]);
+
+  // ============================================================
+  // STATE 2: expandedId (Which product card is expanded)
+  // REASON: Track which product's details are showing
+  // ============================================================
   const [expandedId, setExpandedId] = useState(null);
 
+  // ============================================================
+  // HOOK: useEffect (Load inventory on component mount)
+  // LOGIC:
+  //   - Runs once when component first loads ([] dependency)
+  //   - Check if inventory exists in localStorage
+  //   - If yes, load it; if no, generate new one and save
+  // REASON: Initialize inventory data when page opens
+  // ============================================================
   useEffect(() => {
     const storedInventory = localStorage.getItem(STORAGE_KEY);
     if (storedInventory) {
+      // Inventory exists - load it
       setInventory(JSON.parse(storedInventory));
     } else {
+      // First time - generate and save
       const seedInventory = generateInventory();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(seedInventory));
       setInventory(seedInventory);
     }
   }, []);
 
+  // ============================================================
+  // FUNCTION: persistInventory
+  // SYNTAX: const persistInventory = (updatedInventory) => { ... }
+  // LOGIC: Update state AND save to localStorage simultaneously
+  // REASON: Keep memory and storage in sync whenever data changes
+  // ============================================================
   const persistInventory = (updatedInventory) => {
     setInventory(updatedInventory);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedInventory));
   };
 
+  // ============================================================
+  // FUNCTION: getProductName
+  // SYNTAX: const getProductName = (productId) => { ... }
+  // LOGIC: Find product by ID and return its name
+  // REASON: Convert numeric product ID to readable product name
+  // ============================================================
   const getProductName = (productId) => {
     return products.find((p) => p.id === productId)?.name || "Unknown Product";
   };
 
+  // ============================================================
+  // FUNCTION: updateMaterialQty
+  // SYNTAX: const updateMaterialQty = (productId, materialName, delta) => { ... }
+  // LOGIC: Increase/decrease material quantity by delta amount
+  // Parameters:
+  //   - productId: which product
+  //   - materialName: which material
+  //   - delta: how much to change (+1 or -1)
+  // Math.max(0, ...) ensures quantity never goes below 0
+  // REASON: Handle +/- buttons to adjust stock levels
+  // ============================================================
   const updateMaterialQty = (productId, materialName, delta) => {
     const updatedInventory = inventory.map((inv) => {
       if (inv.productId !== productId) return inv;
@@ -76,6 +131,13 @@ const InventoryList = () => {
     persistInventory(updatedInventory);
   };
 
+  // ============================================================
+  // FUNCTION: updateMaterialThreshold
+  // SYNTAX: const updateMaterialThreshold = (productId, materialName, newVal) => { ... }
+  // LOGIC: Update the minimum stock level for a material
+  // parseInt(newVal) converts text input to number
+  // REASON: Let user set custom reorder levels
+  // ============================================================
   const updateMaterialThreshold = (productId, materialName, newVal) => {
     const updatedInventory = inventory.map((inv) => {
       if (inv.productId !== productId) return inv;
@@ -91,6 +153,13 @@ const InventoryList = () => {
     persistInventory(updatedInventory);
   };
 
+  // ============================================================
+  // COMPUTED STATE: lowStockSummary
+  // SYNTAX: const lowStockSummary = useMemo(() => { ... }, [inventory]);
+  // LOGIC: Create alert list for all materials below threshold
+  // useMemo: Only recalculate when inventory changes
+  // REASON: Efficient way to find all low-stock items
+  // ============================================================
   const lowStockSummary = useMemo(() => {
     let alerts = [];
     inventory.forEach((inv) => {
@@ -109,16 +178,29 @@ const InventoryList = () => {
     return alerts;
   }, [inventory]);
 
-  // Statistics
+  // ============================================================
+  // STATISTICS: Calculate dashboard numbers
+  // REASON: Show quick overview of inventory health
+  // ============================================================
   const stats = {
+    // Count total product inventories
     totalProducts: inventory.length,
+    
+    // Count how many materials are low on stock
     lowStock: lowStockSummary.length,
+    
+    // Sum up all materials across all products
     totalMaterials: inventory.reduce((acc, inv) => acc + (inv.materials?.length || 0), 0),
+    
+    // Count products with NO low-stock materials
     healthyStock: inventory.filter(inv => 
       !inv.materials?.some(mat => mat.availableQty < mat.thresholdQty)
     ).length
   };
 
+  // ============================================================
+  // RETURN: The UI
+  // ============================================================
   return (
     <Box
       sx={{
@@ -128,7 +210,8 @@ const InventoryList = () => {
       }}
     >
       <Container maxWidth="xl">
-        {/* Header Section */}
+        
+        {/* HEADER SECTION - Title and controls */}
         <Paper
           elevation={0}
           sx={{
@@ -169,6 +252,7 @@ const InventoryList = () => {
               </Box>
             </Stack>
 
+            {/* Refresh and Filter buttons */}
             <Stack direction="row" spacing={2}>
               <IconButton
                 sx={{
@@ -192,18 +276,10 @@ const InventoryList = () => {
           </Stack>
         </Paper>
 
-        {/* Statistics Dashboard */}
+        {/* STATISTICS CARDS - Show key numbers */}
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} sm={3}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                border: `2px solid ${alpha("#667eea", 0.2)}`
-              }}
-            >
+            <Paper sx={{ p: 3, borderRadius: 3, background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(10px)", border: `2px solid ${alpha("#667eea", 0.2)}` }}>
               <Stack spacing={1}>
                 <Typography variant="overline" color="text.secondary" fontWeight="600">
                   Total Products
@@ -216,15 +292,7 @@ const InventoryList = () => {
           </Grid>
 
           <Grid item xs={6} sm={3}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
-                position: "relative",
-                overflow: "hidden"
-              }}
-            >
+            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)", position: "relative", overflow: "hidden" }}>
               <Stack spacing={1}>
                 <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
                   Low Stock
@@ -233,30 +301,12 @@ const InventoryList = () => {
                   {stats.lowStock}
                 </Typography>
               </Stack>
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: -15,
-                  right: -15,
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.1)"
-                }}
-              />
+              <Box sx={{ position: "absolute", bottom: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255, 255, 255, 0.1)" }} />
             </Paper>
           </Grid>
 
           <Grid item xs={6} sm={3}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-                position: "relative",
-                overflow: "hidden"
-              }}
-            >
+            <Paper sx={{ p: 3, borderRadius: 3, background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)", position: "relative", overflow: "hidden" }}>
               <Stack spacing={1}>
                 <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
                   Healthy Stock
@@ -265,30 +315,12 @@ const InventoryList = () => {
                   {stats.healthyStock}
                 </Typography>
               </Stack>
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: -15,
-                  right: -15,
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.1)"
-                }}
-              />
+              <Box sx={{ position: "absolute", bottom: -15, right: -15, width: 80, height: 80, borderRadius: "50%", background: "rgba(255, 255, 255, 0.1)" }} />
             </Paper>
           </Grid>
 
           <Grid item xs={6} sm={3}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(10px)",
-                border: `2px solid ${alpha("#667eea", 0.2)}`
-              }}
-            >
+            <Paper sx={{ p: 3, borderRadius: 3, background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(10px)", border: `2px solid ${alpha("#667eea", 0.2)}` }}>
               <Stack spacing={1}>
                 <Typography variant="overline" color="text.secondary" fontWeight="600">
                   Total Materials
@@ -301,7 +333,7 @@ const InventoryList = () => {
           </Grid>
         </Grid>
 
-        {/* Low Stock Alert Banner */}
+        {/* LOW STOCK ALERT BANNER - Shows all low stock materials */}
         <Collapse in={lowStockSummary.length > 0}>
           <Paper
             elevation={0}
@@ -377,29 +409,21 @@ const InventoryList = () => {
                 </Grid>
               </Box>
             </Stack>
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: -30,
-                right: -30,
-                width: 150,
-                height: 150,
-                borderRadius: "50%",
-                background: "rgba(255, 255, 255, 0.1)"
-              }}
-            />
+            <Box sx={{ position: "absolute", bottom: -30, right: -30, width: 150, height: 150, borderRadius: "50%", background: "rgba(255, 255, 255, 0.1)" }} />
           </Paper>
         </Collapse>
 
-        {/* Inventory Grid */}
+        {/* INVENTORY GRID - Product cards with expandable details */}
         <Grid container spacing={3}>
           {inventory.map((inv) => {
             const productName = getProductName(inv.productId);
+            // Check if ANY material is below threshold
             const isLowStock = inv.materials?.some(
               (mat) => mat.availableQty < mat.thresholdQty
             );
             const isExpanded = expandedId === inv.inventoryId;
 
+            // Dynamic colors based on stock status
             const statusConfig = isLowStock ? {
               color: "#ff6a00",
               bgColor: alpha("#ff6a00", 0.1),
@@ -428,10 +452,11 @@ const InventoryList = () => {
                     }
                   }}
                 >
+                  {/* Color bar at top - indicates status */}
                   <Box sx={{ height: 6, background: statusConfig.gradient }} />
 
                   <CardContent sx={{ p: 0 }}>
-                    {/* Card Header */}
+                    {/* CARD HEADER - Product info and expand button */}
                     <Box
                       sx={{ p: 3, cursor: "pointer" }}
                       onClick={() => setExpandedId(isExpanded ? null : inv.inventoryId)}
@@ -460,6 +485,7 @@ const InventoryList = () => {
                           </Box>
                         </Stack>
 
+                        {/* Expand/Collapse button */}
                         <IconButton
                           size="small"
                           sx={{
@@ -476,6 +502,7 @@ const InventoryList = () => {
                         </IconButton>
                       </Stack>
 
+                      {/* Status badges */}
                       <Stack direction="row" spacing={1}>
                         {isLowStock ? (
                           <Chip
@@ -511,7 +538,7 @@ const InventoryList = () => {
                       </Stack>
                     </Box>
 
-                    {/* Expandable Details */}
+                    {/* EXPANDABLE CONTENT - Materials detail view */}
                     <Collapse in={isExpanded}>
                       <Divider />
                       <Box sx={{ bgcolor: alpha("#667eea", 0.03), p: 3 }}>
@@ -532,9 +559,11 @@ const InventoryList = () => {
                           </Button>
                         </Stack>
 
+                        {/* MATERIALS LIST - Show each material with quantity controls */}
                         <Stack spacing={2}>
                           {(inv.materials || []).map((mat, idx) => {
                             const isShortage = mat.availableQty < mat.thresholdQty;
+                            // Calculate progress bar percentage
                             const health = Math.min((mat.availableQty / (mat.thresholdQty || 1)) * 100, 100);
 
                             return (
@@ -548,6 +577,7 @@ const InventoryList = () => {
                                   background: "white"
                                 }}
                               >
+                                {/* Material name and shortage badge */}
                                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
                                   <Typography variant="subtitle2" fontWeight="700" color="text.primary">
                                     {mat.materialName}
@@ -566,6 +596,7 @@ const InventoryList = () => {
                                   )}
                                 </Stack>
 
+                                {/* Progress bar showing stock health */}
                                 <LinearProgress
                                   variant="determinate"
                                   value={health}
@@ -581,6 +612,7 @@ const InventoryList = () => {
                                   }}
                                 />
 
+                                {/* Threshold input and quantity +/- controls */}
                                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                                   <TextField
                                     label="Min Threshold"
@@ -600,6 +632,7 @@ const InventoryList = () => {
                                     }}
                                   />
 
+                                  {/* Quantity adjustment buttons */}
                                   <Stack
                                     direction="row"
                                     alignItems="center"
@@ -612,6 +645,7 @@ const InventoryList = () => {
                                       background: "white"
                                     }}
                                   >
+                                    {/* Decrease button */}
                                     <Tooltip title="Decrease">
                                       <IconButton
                                         size="small"
@@ -629,6 +663,7 @@ const InventoryList = () => {
                                       </IconButton>
                                     </Tooltip>
 
+                                    {/* Current quantity display */}
                                     <Typography
                                       sx={{
                                         minWidth: 40,
@@ -641,6 +676,7 @@ const InventoryList = () => {
                                       {mat.availableQty}
                                     </Typography>
 
+                                    {/* Increase button */}
                                     <Tooltip title="Increase">
                                       <IconButton
                                         size="small"
@@ -677,4 +713,7 @@ const InventoryList = () => {
   );
 };
 
+// ============================================================
+// EXPORT: Make component available to other files
+// ============================================================
 export default InventoryList;
