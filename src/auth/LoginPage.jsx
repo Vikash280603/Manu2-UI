@@ -77,7 +77,9 @@ function LoginPage() {
     // -------------------- USER VALIDATION --------------------
     // Search for a matching user in fakeUsers array
     // trim() removes accidental spaces in email input
-    const user = users.find(
+    const localStorageUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const combinedUsers = [...users, ...localStorageUsers];
+    const user = combinedUsers.find(
       (u) => u.email === email.trim() && u.password === password
     );
 

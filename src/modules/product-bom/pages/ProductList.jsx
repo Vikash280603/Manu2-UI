@@ -330,6 +330,6 @@ function ProductList() {
       )}
     </Box>
   );
-}
+} 
 
 export default ProductList;
