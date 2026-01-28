@@ -1,3 +1,6 @@
+// ============================================================
+// IMPORTS: React hooks and Material-UI components
+// ============================================================
 import React, { useState } from "react";
 import {
   TextField,
@@ -17,58 +20,177 @@ import {
   InputAdornment,
   IconButton
 } from "@mui/material";
+
+// React Router hook - allows navigation between pages
 import { useNavigate } from "react-router-dom";
+
+// Import product and work order data
 import { products } from "../../entities/product";
 import {
   getWorkOrders,
   saveWorkOrders,
   generateWorkOrderId
 } from "../entities/workOrders";
+
+// Material-UI Icons
 import WorkIcon from '@mui/icons-material/Work';
 import CategoryIcon from '@mui/icons-material/Category';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ProductionQuantityLimitsIcon from '@mui/icons-material/ProductionQuantityLimits';
 import LayersIcon from '@mui/icons-material/Layers';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoIcon from '@mui/icons-material/Info';
 
+// ============================================================
+// MAIN COMPONENT: CreateWorkOrder
+// REASON: Form to create new work orders for manufacturing
+// ============================================================
 const CreateWorkOrder = () => {
+  // ============================================================
+  // HOOK: useNavigate
+  // REASON: Navigate between pages (back button, after creating)
+  // ============================================================
   const navigate = useNavigate();
 
+  // ============================================================
+  // STATE 1: productId (Selected product)
+  // SYNTAX: const [productId, setProductId] = useState("");
+  // LOGIC: Stores which product user selected from dropdown
+  // REASON: We need to know which product to create orders for
+  // ============================================================
   const [productId, setProductId] = useState("");
+
+  // ============================================================
+  // STATE 2: qty (Quantity per batch)
+  // SYNTAX: const [qty, setQty] = useState("1");
+  // LOGIC: 
+  //   - Stored as STRING (not number) to allow text input
+  //   - Allows user to clear field while typing (empty string)
+  //   - Converted to number only when needed
+  // REASON: Text input fields work better with string state
+  // ============================================================
   const [qty, setQty] = useState("1");
+
+  // ============================================================
+  // STATE 3: batches (Number of batches to create)
+  // SYNTAX: const [batches, setBatches] = useState("1");
+  // LOGIC: How many identical work orders to create
+  // EXAMPLE: If qty=100 and batches=3, create 3 orders of 100 each
+  // REASON: User might want to create multiple orders at once
+  // ============================================================
   const [batches, setBatches] = useState("1");
+
+  // ============================================================
+  // STATE 4: scheduledDate (When to start production)
+  // SYNTAX: const [scheduledDate, setScheduledDate] = useState("");
+  // LOGIC: Date string in format "YYYY-MM-DD"
+  // REASON: Schedule production for future dates
+  // ============================================================
   const [scheduledDate, setScheduledDate] = useState("");
 
-  // CHANGED: compute numeric values for display/calculation
+  // ============================================================
+  // COMPUTED VALUE 1: qtyNumForCalc
+  // SYNTAX: const qtyNumForCalc = Math.max(1, parseInt(qty, 10) || 1);
+  // LOGIC:
+  //   - parseInt(qty, 10) = convert string "100" to number 100
+  //   - || 1 = if conversion fails (empty string), use 1
+  //   - Math.max(1, ...) = ensure minimum is 1 (never 0 or negative)
+  // REASON: Safe numeric value for calculations and display
+  // ============================================================
   const qtyNumForCalc = Math.max(1, parseInt(qty, 10) || 1);
+
+  // ============================================================
+  // COMPUTED VALUE 2: batchesNumForCalc
+  // SYNTAX: const batchesNumForCalc = Math.max(1, parseInt(batches, 10) || 1);
+  // LOGIC: Same as above - convert string to safe numeric value
+  // REASON: Use for calculating how many orders to create
+  // ============================================================
   const batchesNumForCalc = Math.max(1, parseInt(batches, 10) || 1);
 
+  // ============================================================
+  // FUNCTION: createOrders
+  // SYNTAX: const createOrders = () => { ... }
+  // LOGIC:
+  //   STEP 1: Get existing work orders from storage
+  //   STEP 2: Get current date/time
+  //   STEP 3: Create new work order objects (one for each batch)
+  //   STEP 4: Save combined list to storage
+  //   STEP 5: Navigate to work orders page
+  // 
+  // EXAMPLE FLOW:
+  //   - User selects Product 1
+  //   - User enters qty=50, batches=2
+  //   - Creates 2 work orders:
+  //     Order 1: { id: uuid-123, productId: 1, quantity: 50, status: "PLANNED" }
+  //     Order 2: { id: uuid-456, productId: 1, quantity: 50, status: "PLANNED" }
+  // 
+  // REASON: Handle the "Create Work Order" button click
+  // ============================================================
   const createOrders = () => {
+    // STEP 1: Get existing work orders to add to
     const existing = getWorkOrders();
+
+    // STEP 2: Get current timestamp
     const now = new Date().toISOString();
 
+    // STEP 3: Create new work orders
+    // Array.from({ length: batchesNumForCalc }).map()
+    //   - Creates array with X empty items (X = number of batches)
+    //   - map() transforms each into a work order object
     const newOrders = Array.from({ length: batchesNumForCalc }).map(() => ({
+      // Unique ID for this work order
       workOrderId: generateWorkOrderId(),
+
+      // Which product to manufacture
       productId: Number(productId),
+
+      // How many units to produce in this batch
       quantity: qtyNumForCalc,
+
+      // Current status (starts as PLANNED)
       status: "PLANNED",
+
+      // When this order was created
       createdAt: now,
+
+      // When to start/complete this order
       scheduledDate,
+
+      // When it was finished (null until completed)
       completedAt: null
     }));
 
+    // STEP 4: Merge existing + new orders and save
     saveWorkOrders([...existing, ...newOrders]);
+
+    // STEP 5: Go to work orders page to see them
     navigate("/workorder");
   };
 
+  // ============================================================
+  // COMPUTED VALUE 3: selectedProduct
+  // SYNTAX: const selectedProduct = products.find(p => p.id === Number(productId));
+  // LOGIC:
+  //   - products.find() = search products array
+  //   - p.id === Number(productId) = find one matching the selected ID
+  //   - Returns product object or undefined if not found
+  // REASON: Show product details in summary card
+  // ============================================================
   const selectedProduct = products.find(p => p.id === Number(productId));
-  
-  
+
+  // ============================================================
+  // COMPUTED VALUE 4: totalQuantity
+  // SYNTAX: const totalQuantity = qtyNumForCalc * batchesNumForCalc;
+  // LOGIC: Multiply quantity per batch × number of batches
+  // EXAMPLE: 50 units × 2 batches = 100 total units
+  // REASON: Show user total quantity in summary
+  // ============================================================
   const totalQuantity = qtyNumForCalc * batchesNumForCalc;
 
+  // ============================================================
+  // RETURN: The UI
+  // ============================================================
   return (
     <Box
       sx={{
@@ -78,7 +200,8 @@ const CreateWorkOrder = () => {
       }}
     >
       <Container maxWidth="lg">
-        {/* Header Section */}
+        
+        {/* ===== HEADER SECTION ===== */}
         <Paper
           elevation={0}
           sx={{
@@ -90,6 +213,7 @@ const CreateWorkOrder = () => {
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center">
+            {/* Back button */}
             <IconButton
               onClick={() => navigate(-1)}
               sx={{
@@ -103,6 +227,7 @@ const CreateWorkOrder = () => {
               <ArrowBackIcon />
             </IconButton>
             
+            {/* Icon box */}
             <Box
               sx={{
                 width: 48,
@@ -117,6 +242,7 @@ const CreateWorkOrder = () => {
               <WorkIcon sx={{ color: "white", fontSize: 28 }} />
             </Box>
             
+            {/* Title */}
             <Box flex={1}>
               <Typography variant="h4" fontWeight="700" color="text.primary">
                 Create Work Order
@@ -126,6 +252,7 @@ const CreateWorkOrder = () => {
               </Typography>
             </Box>
 
+            {/* Status badge */}
             <Chip
               icon={<InfoIcon />}
               label="PLANNING"
@@ -140,8 +267,10 @@ const CreateWorkOrder = () => {
           </Stack>
         </Paper>
 
+        {/* ===== MAIN CONTENT: Form (Left) + Summary (Right) ===== */}
         <Grid container spacing={3}>
-          {/* Form Section */}
+          
+          {/* ===== LEFT SECTION: Form Inputs ===== */}
           <Grid item xs={12} md={7}>
             <Paper
               elevation={0}
@@ -157,7 +286,8 @@ const CreateWorkOrder = () => {
               </Typography>
 
               <Stack spacing={3}>
-                {/* Product Selection */}
+                
+                {/* ===== FIELD 1: Product Selection ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Product Selection
@@ -194,6 +324,7 @@ const CreateWorkOrder = () => {
                     <MenuItem value="" disabled>
                       <em>Choose a product</em>
                     </MenuItem>
+                    {/* Loop through all products and show as options */}
                     {products.map((p) => (
                       <MenuItem key={p.id} value={p.id}>
                         <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -212,7 +343,7 @@ const CreateWorkOrder = () => {
                   </TextField>
                 </Box>
 
-                {/* Scheduled Date */}
+                {/* ===== FIELD 2: Scheduled Date ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                     Scheduled Date
@@ -250,32 +381,29 @@ const CreateWorkOrder = () => {
 
                 <Divider />
 
-                {/* Quantity and Batches */}
+                {/* ===== FIELDS 3 & 4: Quantity and Batches ===== */}
                 <Grid container spacing={2}>
+                  
+                  {/* Quantity per Batch */}
                   <Grid item xs={12} sm={6}>
                     <Box>
                       <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                         Quantity per Batch
                       </Typography>
-                      {/* <TextField
-                        type="number"
-                        fullWidth
-                        value={qty}
-                        onChange={(e) => setQty(Math.max(1, +e.target.value))} */}
                       <TextField
                         type="number"
                         fullWidth
-                        // CHANGED: value is a string so the input can be cleared while typing
+                        // String value allows clearing while typing
                         value={qty}
-                        // CHANGED: allow typing (including an empty string) and only keep digits
+                        // Allow typing and remove non-digits with regex
+                        // .replace(/\D/g, "") = remove all non-digit characters
                         onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))}
-                        // CHANGED: onFocus clear the "1" so typing replaces it; onBlur restore to at least "1"
-                        //onFocus={() => { if (qty === "1") setQty(""); }} // CHANGED
+                        // When user leaves field, ensure valid number
                         onBlur={() => {
-                          // ensure a valid numeric value after user leaves input
+                          // Convert to number and ensure minimum is 1
                           const n = Math.max(1, parseInt(qty, 10) || 1);
-                          setQty(String(n));
-                        }} // CHANGED
+                          setQty(String(n)); // Convert back to string for display
+                        }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -302,26 +430,22 @@ const CreateWorkOrder = () => {
                     </Box>
                   </Grid>
 
+                  {/* Number of Batches */}
                   <Grid item xs={12} sm={6}>
                     <Box>
                       <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
                         Number of Batches
                       </Typography>
-                      {/* <TextField
-                        type="number"
-                        fullWidth
-                        value={batches}
-                        onChange={(e) => setBatches(Math.max(1, +e.target.value))} */}
                       <TextField
                         type="number"
                         fullWidth
-                        value={batches} // CHANGED: string value
-                        onChange={(e) => setBatches(e.target.value.replace(/\D/g, ""))} // CHANGED
-                        //onFocus={() => { if (batches === "1") setBatches(""); }} // CHANGED
+                        // Same logic as quantity field
+                        value={batches}
+                        onChange={(e) => setBatches(e.target.value.replace(/\D/g, ""))}
                         onBlur={() => {
                           const n = Math.max(1, parseInt(batches, 10) || 1);
                           setBatches(String(n));
-                        }} // CHANGED
+                        }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -351,8 +475,9 @@ const CreateWorkOrder = () => {
 
                 <Divider />
 
-                {/* Action Buttons */}
+                {/* ===== ACTION BUTTONS ===== */}
                 <Stack direction="row" spacing={2}>
+                  {/* Create button - disabled until product and date selected */}
                   <Button
                     variant="contained"
                     fullWidth
@@ -380,6 +505,7 @@ const CreateWorkOrder = () => {
                     Create Work Order
                   </Button>
 
+                  {/* Cancel button - goes back to previous page */}
                   <Button
                     variant="outlined"
                     size="large"
@@ -407,9 +533,10 @@ const CreateWorkOrder = () => {
             </Paper>
           </Grid>
 
-          {/* Summary Section */}
+          {/* ===== RIGHT SECTION: Summary and Info ===== */}
           <Grid item xs={12} md={5}>
             <Stack spacing={3}>
+              
               {/* Order Summary Card */}
               <Card
                 sx={{
@@ -425,6 +552,7 @@ const CreateWorkOrder = () => {
                   </Typography>
 
                   <Stack spacing={2}>
+                    {/* Selected Product Box */}
                     <Box
                       sx={{
                         background: "rgba(255, 255, 255, 0.2)",
@@ -440,6 +568,7 @@ const CreateWorkOrder = () => {
                       </Typography>
                     </Box>
 
+                    {/* Total Quantity Box */}
                     <Box
                       sx={{
                         background: "rgba(255, 255, 255, 0.2)",
@@ -453,11 +582,13 @@ const CreateWorkOrder = () => {
                       <Typography variant="h6" fontWeight="700" color="white">
                         {totalQuantity} units
                       </Typography>
+                      {/* Show breakdown: qty per batch × number of batches */}
                       <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.8)" }}>
                         {qty} per batch × {batches} batches
                       </Typography>
                     </Box>
 
+                    {/* Scheduled Date Box */}
                     <Box
                       sx={{
                         background: "rgba(255, 255, 255, 0.2)",
@@ -470,6 +601,7 @@ const CreateWorkOrder = () => {
                       </Typography>
                       <Typography variant="h6" fontWeight="700" color="white">
                         {scheduledDate
+                          // Convert date string to readable format
                           ? new Date(scheduledDate).toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "long",
@@ -481,6 +613,7 @@ const CreateWorkOrder = () => {
                   </Stack>
                 </CardContent>
 
+                {/* Decorative circle background */}
                 <Box
                   sx={{
                     position: "absolute",
@@ -494,7 +627,7 @@ const CreateWorkOrder = () => {
                 />
               </Card>
 
-              {/* Info Card */}
+              {/* Quick Tips Card */}
               <Paper
                 sx={{
                   background: "rgba(255, 255, 255, 0.95)",
@@ -503,6 +636,7 @@ const CreateWorkOrder = () => {
                   p: 3
                 }}
               >
+                {/* Tips header */}
                 <Stack direction="row" spacing={2} mb={2}>
                   <Box
                     sx={{
@@ -524,6 +658,7 @@ const CreateWorkOrder = () => {
                   </Box>
                 </Stack>
 
+                {/* Tips list */}
                 <Stack spacing={1.5}>
                   <Typography variant="body2" color="text.secondary">
                     • All work orders will be created with "PLANNED" status
@@ -547,4 +682,7 @@ const CreateWorkOrder = () => {
   );
 };
 
+// ============================================================
+// EXPORT: Make component available
+// ============================================================
 export default CreateWorkOrder;

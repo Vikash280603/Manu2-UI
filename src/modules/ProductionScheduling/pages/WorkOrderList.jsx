@@ -1,3 +1,6 @@
+// ============================================================
+// IMPORTS: React hooks and Material-UI components
+// ============================================================
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -17,9 +20,11 @@ import {
   IconButton,
   Badge
 } from "@mui/material";
+
+// React Router hooks - navigation between pages
 import { useNavigate, useLocation } from "react-router-dom";
 
-// Icons
+// Material-UI Icons for different work order statuses
 import AddIcon from "@mui/icons-material/Add";
 import InventoryIcon from "@mui/icons-material/Inventory2";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -33,13 +38,42 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
+// Import data sources
 import { products } from "../../entities/product";
 import { boms } from "../../entities/bom";
 import { getWorkOrders, saveWorkOrders } from "../entities/workOrders";
 
+// ============================================================
+// CONSTANT: Storage key for inventory
+// REASON: Same key used consistently to store/retrieve inventory
+// ============================================================
 const INVENTORY_KEY = "manutrack_inventory_v2";
 
-// Status UI Config
+// ============================================================
+// CONSTANT: Status Configuration Object
+// SYNTAX: const statusConfig = { PLANNED: {...}, IN_PROGRESS: {...}, ... }
+// 
+// LOGIC:
+//   - Stores styling and metadata for each work order status
+//   - Each status has:
+//     * color: primary color for that status
+//     * bgColor: background color (with transparency)
+//     * borderColor: border color (with transparency)
+//     * icon: icon component to display
+//     * label: readable text label
+//     * gradient: gradient background for buttons
+//
+// REASON:
+//   - Consistent UI across all components
+//   - Easy to change colors/icons in one place
+//   - Reusable configuration for multiple status types
+// 
+// EXAMPLE:
+//   statusConfig.PLANNED.color = "#f39c12" (orange)
+//   statusConfig.IN_PROGRESS.color = "#3498db" (blue)
+//   statusConfig.COMPLETED.color = "#38ef7d" (green)
+//   statusConfig.QUALITY_DONE.color = "#9b59b6" (purple)
+// ============================================================
 const statusConfig = {
   PLANNED: {
     color: "#f39c12",
@@ -75,84 +109,194 @@ const statusConfig = {
   }
 };
 
+// ============================================================
+// MAIN COMPONENT: WorkOrderList
+// REASON: Display and manage all work orders with status tracking
+// ============================================================
 const WorkOrderList = () => {
+  // ============================================================
+  // HOOK: useNavigate - navigate between pages
+  // REASON: Move to create page or quality inspection page
+  // ============================================================
   const navigate = useNavigate();
+
+  // ============================================================
+  // HOOK: useLocation - get current page info
+  // REASON: Build navigation URLs relative to current page
+  // ============================================================
   const location = useLocation();
 
+  // ============================================================
+  // STATE 1: orders (List of all work orders)
+  // REASON: Store all work orders fetched from storage
+  // ============================================================
   const [orders, setOrders] = useState([]);
+
+  // ============================================================
+  // STATE 2: error (Error message if operation fails)
+  // REASON: Display error alerts when inventory allocation fails
+  // ============================================================
   const [error, setError] = useState("");
 
+  // ============================================================
+  // HOOK: useEffect (Load work orders on mount)
+  // LOGIC: Runs once when component loads
+  // REASON: Fetch all work orders from storage on page open
+  // ============================================================
   useEffect(() => {
     setOrders(getWorkOrders());
   }, []);
 
+  // ============================================================
+  // FUNCTION: getProductName
+  // SYNTAX: const getProductName = (id) => ...
+  // LOGIC: Find product by ID and return its name
+  // REASON: Convert numeric product ID to readable name
+  // ============================================================
   const getProductName = (id) =>
     products.find((p) => p.id === id)?.name || "Unknown Product";
 
-  // Allocate Inventory → IN_PROGRESS
+  // ============================================================
+  // FUNCTION: allocateMaterials
+  // SYNTAX: const allocateMaterials = (order) => { ... }
+  // 
+  // LOGIC (3 Steps):
+  //   STEP 1: Validate - Check if enough inventory exists
+  //   STEP 2: Update - Deduct materials from inventory
+  //   STEP 3: Complete - Change order status to IN_PROGRESS
+  //
+  // DETAILED FLOW:
+  //   1. Get current inventory from storage
+  //   2. Find inventory for this product
+  //   3. Get all BOMs (materials needed) for this product
+  //   4. For each material:
+  //      a. Check: How much do we need? (bom.quantity × order.quantity)
+  //      b. Verify: Do we have enough in inventory?
+  //      c. If NO → show error and stop
+  //      d. If YES → continue
+  //   5. Deduct all materials from inventory
+  //   6. Save updated inventory to storage
+  //   7. Change order status from PLANNED → IN_PROGRESS
+  //   8. Save updated orders to storage
+  //
+  // EXAMPLE:
+  //   Order: Product 1, Quantity 100 units
+  //   BOM: [Steel 5kg per unit, Plastic 2kg per unit]
+  //   Needed: Steel 500kg (5×100), Plastic 200kg (2×100)
+  //   Check inventory: Do we have 500kg Steel and 200kg Plastic?
+  //   If YES → Deduct and mark as IN_PROGRESS
+  //   If NO → Show "Insufficient inventory" error
+  //
+  // REASON: Allocate materials when starting production
+  // ============================================================
   const allocateMaterials = (order) => {
+    // Clear previous errors
     setError("");
 
+    // Get current inventory
     const inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY)) || [];
+
+    // Find inventory for this product
     const invItem = inventory.find((i) => i.productId === order.productId);
+
+    // Get all materials (BOMs) needed for this product
     const productBoms = boms.filter((b) => b.id === order.productId);
 
+    // VALIDATION: Check if we have enough of each material
     for (let bom of productBoms) {
+      // Find this material in inventory
       const mat = invItem?.materials.find((m) => m.materialName === bom.materialName);
+
+      // Calculate total needed: material per unit × order quantity
       const required = bom.quantity * order.quantity;
 
+      // If material missing or insufficient, show error
       if (!mat || mat.availableQty < required) {
         setError("Insufficient inventory for allocation.");
-        return;
+        return; // Stop execution
       }
     }
 
+    // UPDATE INVENTORY: Deduct materials from stock
     const updatedInventory = inventory.map((inv) =>
+      // Skip products that don't match
       inv.productId !== order.productId
         ? inv
+        // For matching product, deduct materials
         : {
             ...inv,
             materials: inv.materials.map((mat) => {
+              // Find BOM for this material
               const bom = productBoms.find((b) => b.materialName === mat.materialName);
+              // If BOM exists, deduct required quantity
               return bom
                 ? {
                     ...mat,
+                    // Reduce available quantity
                     availableQty: mat.availableQty - bom.quantity * order.quantity
                   }
-                : mat;
+                : mat; // No change if no BOM found
             })
           }
     );
 
+    // Save updated inventory to storage
     localStorage.setItem(INVENTORY_KEY, JSON.stringify(updatedInventory));
 
+    // UPDATE ORDER STATUS: Change from PLANNED to IN_PROGRESS
     const updatedOrders = orders.map((o) =>
       o.workOrderId === order.workOrderId ? { ...o, status: "IN_PROGRESS" } : o
     );
 
+    // Save updated orders to storage
     saveWorkOrders(updatedOrders);
+
+    // Update state to refresh UI
     setOrders(updatedOrders);
   };
 
-  // Complete → COMPLETED
+  // ============================================================
+  // FUNCTION: completeOrder
+  // SYNTAX: const completeOrder = (order) => { ... }
+  // LOGIC: Change order status from IN_PROGRESS to COMPLETED
+  // REASON: Mark production as complete, ready for QA
+  // ============================================================
   const completeOrder = (order) => {
+    // Map through orders and update the matching one
     const updatedOrders = orders.map((o) =>
       o.workOrderId === order.workOrderId ? { ...o, status: "COMPLETED" } : o
     );
 
+    // Save to storage
     saveWorkOrders(updatedOrders);
+
+    // Update state
     setOrders(updatedOrders);
   };
 
-  // Statistics
+  // ============================================================
+  // STATISTICS: Count orders in each status
+  // REASON: Display summary dashboard at top of page
+  // ============================================================
   const stats = {
+    // Count orders with status = "PLANNED"
     planned: orders.filter(o => o.status === "PLANNED").length,
+
+    // Count orders with status = "IN_PROGRESS"
     inProgress: orders.filter(o => o.status === "IN_PROGRESS").length,
+
+    // Count orders with status = "COMPLETED"
     completed: orders.filter(o => o.status === "COMPLETED").length,
+
+    // Count orders with status = "QUALITY_DONE"
     qualityDone: orders.filter(o => o.status === "QUALITY_DONE").length
   };
 
-  // Empty State
+  // ============================================================
+  // EMPTY STATE: Show when no orders exist
+  // LOGIC: If orders array is empty, show this UI instead
+  // REASON: Guide user to create first work order
+  // ============================================================
   if (orders.length === 0) {
     return (
       <Box
@@ -176,6 +320,7 @@ const WorkOrderList = () => {
               textAlign: "center"
             }}
           >
+            {/* Empty state icon */}
             <Box
               sx={{
                 width: 120,
@@ -191,12 +336,16 @@ const WorkOrderList = () => {
             >
               <AssignmentIcon sx={{ fontSize: 64, color: "#667eea" }} />
             </Box>
+
+            {/* Empty state text */}
             <Typography variant="h4" fontWeight="700" mb={2} color="text.primary">
               No Work Orders Yet
             </Typography>
             <Typography variant="body1" color="text.secondary" mb={4}>
               Start by creating your first production order and track your manufacturing workflow
             </Typography>
+
+            {/* Button to create first order */}
             <Button
               variant="contained"
               size="large"
@@ -221,6 +370,9 @@ const WorkOrderList = () => {
     );
   }
 
+  // ============================================================
+  // MAIN UI: When orders exist
+  // ============================================================
   return (
     <Box
       sx={{
@@ -230,7 +382,8 @@ const WorkOrderList = () => {
       }}
     >
       <Container maxWidth="xl">
-        {/* Header Section */}
+        
+        {/* ===== HEADER SECTION ===== */}
         <Paper
           elevation={0}
           sx={{
@@ -247,6 +400,7 @@ const WorkOrderList = () => {
             alignItems={{ xs: "flex-start", md: "center" }}
             spacing={2}
           >
+            {/* Title section */}
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -271,7 +425,9 @@ const WorkOrderList = () => {
               </Box>
             </Stack>
 
+            {/* Control buttons section */}
             <Stack direction="row" spacing={2}>
+              {/* Refresh button */}
               <IconButton
                 sx={{
                   background: alpha("#667eea", 0.1),
@@ -281,6 +437,8 @@ const WorkOrderList = () => {
               >
                 <RefreshIcon />
               </IconButton>
+
+              {/* Filter button */}
               <Button
                 variant="outlined"
                 startIcon={<FilterListIcon />}
@@ -298,6 +456,8 @@ const WorkOrderList = () => {
               >
                 Filter
               </Button>
+
+              {/* Create new work order button */}
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -317,8 +477,9 @@ const WorkOrderList = () => {
           </Stack>
         </Paper>
 
-        {/* Statistics Dashboard */}
+        {/* ===== STATISTICS DASHBOARD ===== */}
         <Grid container spacing={2} mb={3}>
+          {/* PLANNED count card */}
           <Grid item xs={6} sm={3}>
             <Paper
               sx={{
@@ -355,6 +516,7 @@ const WorkOrderList = () => {
             </Paper>
           </Grid>
 
+          {/* IN_PROGRESS count card */}
           <Grid item xs={6} sm={3}>
             <Paper
               sx={{
@@ -391,6 +553,7 @@ const WorkOrderList = () => {
             </Paper>
           </Grid>
 
+          {/* COMPLETED count card */}
           <Grid item xs={6} sm={3}>
             <Paper
               sx={{
@@ -427,6 +590,7 @@ const WorkOrderList = () => {
             </Paper>
           </Grid>
 
+          {/* QUALITY_DONE count card */}
           <Grid item xs={6} sm={3}>
             <Paper
               sx={{
@@ -464,7 +628,7 @@ const WorkOrderList = () => {
           </Grid>
         </Grid>
 
-        {/* Error Alert */}
+        {/* ===== ERROR ALERT ===== */}
         {error && (
           <Alert 
             severity="error" 
@@ -475,9 +639,10 @@ const WorkOrderList = () => {
           </Alert>
         )}
 
-        {/* Work Order Cards */}
+        {/* ===== WORK ORDER CARDS GRID ===== */}
         <Grid container spacing={3}>
           {orders.map((order) => {
+            // Get styling config for this order's status
             const config = statusConfig[order.status] || {
               color: "#95a5a6",
               bgColor: alpha("#95a5a6", 0.1),
@@ -503,12 +668,13 @@ const WorkOrderList = () => {
                     }
                   }}
                 >
-                  {/* Status Gradient Bar */}
+                  {/* Color bar indicating status */}
                   <Box sx={{ height: 6, background: config.gradient }} />
 
                   <CardContent sx={{ p: 3 }}>
                     <Stack spacing={2}>
-                      {/* Header */}
+                      
+                      {/* HEADER: Product name and status badge */}
                       <Stack
                         direction="row"
                         justifyContent="space-between"
@@ -516,14 +682,17 @@ const WorkOrderList = () => {
                         spacing={1}
                       >
                         <Box flex={1}>
+                          {/* Product name */}
                           <Typography variant="h6" fontWeight="700" color="text.primary">
                             {getProductName(order.productId)}
                           </Typography>
+                          {/* Work order ID */}
                           <Typography variant="caption" color="text.secondary">
                             WO #{order.workOrderId}
                           </Typography>
                         </Box>
 
+                        {/* Status badge */}
                         <Chip
                           icon={config.icon}
                           label={config.label}
@@ -539,8 +708,9 @@ const WorkOrderList = () => {
 
                       <Divider />
 
-                      {/* Details */}
+                      {/* ORDER DETAILS */}
                       <Stack spacing={1.5}>
+                        {/* Quantity */}
                         <Stack direction="row" justifyContent="space-between">
                           <Typography variant="body2" color="text.secondary">
                             Quantity
@@ -550,6 +720,7 @@ const WorkOrderList = () => {
                           </Typography>
                         </Stack>
 
+                        {/* Scheduled date (if exists) */}
                         {order.scheduledDate && (
                           <Stack direction="row" justifyContent="space-between" alignItems="center">
                             <Stack direction="row" spacing={0.5} alignItems="center">
@@ -558,6 +729,7 @@ const WorkOrderList = () => {
                                 Scheduled
                               </Typography>
                             </Stack>
+                            {/* Format date as "Jan 15" */}
                             <Typography variant="body2" fontWeight="600" color="text.primary">
                               {new Date(order.scheduledDate).toLocaleDateString("en-US", {
                                 month: "short",
@@ -570,8 +742,9 @@ const WorkOrderList = () => {
 
                       <Divider />
 
-                      {/* Actions */}
+                      {/* ACTION BUTTONS - Change based on status */}
                       <Stack spacing={1}>
+                        {/* STATUS 1: PLANNED → Show "Allocate Materials" button */}
                         {order.status === "PLANNED" && (
                           <Button
                             fullWidth
@@ -594,6 +767,7 @@ const WorkOrderList = () => {
                           </Button>
                         )}
 
+                        {/* STATUS 2: IN_PROGRESS → Show "Mark Complete" button */}
                         {order.status === "IN_PROGRESS" && (
                           <Button
                             fullWidth
@@ -616,6 +790,7 @@ const WorkOrderList = () => {
                           </Button>
                         )}
 
+                        {/* STATUS 3: COMPLETED → Show "Quality Inspection" button */}
                         {order.status === "COMPLETED" && (
                           <Button
                             fullWidth
@@ -638,6 +813,7 @@ const WorkOrderList = () => {
                           </Button>
                         )}
 
+                        {/* STATUS 4: QUALITY_DONE → Show disabled "Approved" button */}
                         {order.status === "QUALITY_DONE" && (
                           <Button
                             fullWidth
@@ -670,4 +846,7 @@ const WorkOrderList = () => {
   );
 };
 
+// ============================================================
+// EXPORT: Make component available
+// ============================================================
 export default WorkOrderList;
