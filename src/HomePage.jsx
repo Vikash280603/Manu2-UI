@@ -62,7 +62,7 @@ function HomePage() {
       <AppBar
         position="static"      // Stays at the top, scrolls with page
         color="transparent"    // Removes default blue background
-        elevation={20}           // Add shadow for better look
+        elevation={0}           // Add shadow for better look
         sx={{ pt: 1 }}           // Padding-top
       >
         <Toolbar>

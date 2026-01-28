@@ -395,35 +395,7 @@ const WorkOrderList = () => {
 
             {/* Control buttons section */}
             <Stack direction="row" spacing={2}>
-              {/* Refresh button */}
-              <IconButton
-                sx={{
-                  background: alpha("#667eea", 0.1),
-                  color: "#667eea",
-                  "&:hover": { background: alpha("#667eea", 0.2) }
-                }}
-              >
-                <RefreshIcon />
-              </IconButton>
 
-              {/* Filter button */}
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderColor: alpha("#667eea", 0.3),
-                  color: "#667eea",
-                  "&:hover": {
-                    borderColor: "#667eea",
-                    background: alpha("#667eea", 0.05)
-                  }
-                }}
-              >
-                Filter
-              </Button>
 
               {/* Create new work order button */}
               <Button

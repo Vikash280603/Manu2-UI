@@ -243,6 +243,8 @@ const InventoryList = () => {
               </Box>
             </Stack>
 
+            {/* Refresh and Filter buttons */}
+            
           </Stack>
         </Paper>
 
