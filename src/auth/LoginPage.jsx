@@ -42,7 +42,7 @@ import { users } from "./fakeUsers";
 const roleRedirects = {
   product_bom_manager: "/products",
   inventory_manager: "/inventory",
-  qc_manager: "/quality-checks",
+  qc_manager: "/quality",
   dashboard_user: "/dashboard",
   admin: "/analytics",
 };
