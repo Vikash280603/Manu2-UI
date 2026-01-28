@@ -69,32 +69,29 @@ const AnalyticsDashboard = () => {
 
   // ============================================================
   // HOOK: useEffect (Generate and save analytics report on load)
-  // SYNTAX: useEffect(() => { ... }, []);
+  // 
+  // FIX FOR DUPLICATE REPORTS:
+  // - Check if a report was already created in the last 5 seconds
+  // - Compare metrics of last report with current metrics
+  // - Only create NEW report if metrics have changed
+  // - This prevents duplicate reports from:
+  //   * React Strict Mode (double mounting in dev)
+  //   * HMR/Hot reload
+  //   * Navigating back to dashboard
+  //
   // LOGIC:
   //   STEP 1: Fetch quality check data from localStorage
   //   STEP 2: Calculate metrics from quality data
-  //   STEP 3: Create new report object with metrics
-  //   STEP 4: Get existing reports
-  //   STEP 5: Save new report to storage
-  //   STEP 6: Update state with latest report
+  //   STEP 3: Get existing reports from storage
+  //   STEP 4: Check if we already have a recent report with same metrics
+  //   STEP 5: If yes → just display it (don't create new one)
+  //   STEP 6: If no → create new report and save it
+  //   STEP 7: Update state with latest report
   //
-  // DETAILED FLOW:
-  //   1. Get all quality inspections (PASS/FAIL records)
-  //   2. Pass them to calculateMetrics() function:
-  //      - Counts total inspections
-  //      - Counts passed vs failed
-  //      - Calculates success/failure percentages
-  //      - Returns {successRate, failureRate, etc.}
-  //   3. Create report object:
-  //      - Generate unique report ID
-  //      - Timestamp when report was created
-  //      - Include calculated metrics
-  //   4. Get all previously saved reports
-  //   5. Combine: [...old reports, new report]
-  //   6. Save combined list to localStorage
-  //   7. Store latest report in state for UI
-  //
-  // REASON: Auto-generate and archive analytics data
+  // REASON: 
+  //   - Auto-generate and archive analytics data
+  //   - Prevent duplicate reports at same timestamp
+  //   - Only create report when metrics actually change
   // ============================================================
   useEffect(() => {
     // STEP 1: Get quality data from storage
@@ -105,21 +102,42 @@ const AnalyticsDashboard = () => {
     // Returns something like:
     // { successRate: 92.5, failureRate: 7.5, totalChecks: 40, passed: 37, failed: 3 }
 
-    // STEP 3: Create new report with metrics
+    // STEP 3: Get existing reports
+    const existing = getReports();
+    // Returns: [] or [previous report, previous report, ...]
+
+    // STEP 4: Get the most recent report
+    const lastReport = existing.length > 0 ? existing[existing.length - 1] : null;
+
+    // STEP 5: Check if we should create a NEW report or reuse the last one
+    // CONDITIONS TO SKIP CREATING NEW REPORT:
+    //   1. lastReport exists (there's a previous report)
+    //   2. Success rate is identical (no change in data)
+    //   3. Failure rate is identical (no change in data)
+    //   4. Report was created less than 5 seconds ago (not stale)
+    if (
+      lastReport &&
+      lastReport.metrics.successRate === metrics.successRate &&
+      lastReport.metrics.failureRate === metrics.failureRate &&
+      (Date.now() - new Date(lastReport.generatedDate).getTime()) < 5000
+    ) {
+      // Report already exists and is recent → just display it
+      // This prevents duplicates when component mounts multiple times
+      setLatestReport(lastReport);
+      return; // EXIT: Don't create a new report
+    }
+
+    // STEP 6: Create NEW report (only if metrics changed or no recent report exists)
     const newReport = {
-      reportId: generateReportId(),              // "RPT-1704067245123"
+      reportId: generateReportId(),              // "RPT-1704067245123-a7f9x2"
       generatedDate: new Date().toISOString(),   // Timestamp of when report was created
       metrics                                     // { successRate: 92.5, failureRate: 7.5, ... }
     };
 
-    // STEP 4: Get existing reports
-    const existing = getReports();
-    // Returns: [] or [previous report, previous report, ...]
-
-    // STEP 5: Save new report + all existing reports
+    // STEP 7: Save new report + all existing reports
     saveReports([...existing, newReport]);
 
-    // STEP 6: Update state to display latest report
+    // STEP 8: Update state to display latest report
     setLatestReport(newReport);
   }, []);
 
@@ -206,17 +224,7 @@ const AnalyticsDashboard = () => {
 
             {/* Control buttons section */}
             <Stack direction="row" spacing={2}>
-              {/* Refresh button */}
-              <IconButton
-                color="primary"
-                sx={{
-                  background: alpha("#667eea", 0.1),
-                  "&:hover": { background: alpha("#667eea", 0.2) }
-                }}
-              >
-                <RefreshIcon />
-              </IconButton>
-
+             
               {/* View Reports button */}
               <Button
                 variant="contained"
