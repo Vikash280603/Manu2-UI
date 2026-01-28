@@ -595,7 +595,6 @@ const QualityCreate = () => {
                   size="large"
                   startIcon={<VerifiedIcon />}
                   onClick={submitQuality}
-                  disabled={accepted === 0} 
                   sx={{
                     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                     borderRadius: 3,
