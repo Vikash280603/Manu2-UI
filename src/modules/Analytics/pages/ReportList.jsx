@@ -122,141 +122,16 @@ const ReportList = () => {
               </Box>
             </Stack>
 
-            {/* Buttons */}
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderColor: alpha("#667eea", 0.3),
-                  color: "#667eea",
-                  "&:hover": {
-                    borderColor: "#667eea",
-                    background: alpha("#667eea", 0.05)
-                  }
-                }}
-              >
-                Filter
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<DownloadIcon />}
-                sx={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 3,
-                  boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
-                }}
-              >
-                Export
-              </Button>
-            </Stack>
+      
           </Stack>
 
-          {/* SEARCH BAR */}
-          <Box mt={3}>
-            <TextField
-              fullWidth
-              placeholder="Search by Report ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "#667eea" }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 3,
-                  background: "white",
-                  "& fieldset": {
-                    borderColor: alpha("#667eea", 0.2)
-                  },
-                  "&:hover fieldset": {
-                    borderColor: alpha("#667eea", 0.4)
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "#667eea"
-                  }
-                }
-              }}
-            />
-          </Box>
+        
         </Paper>
 
         {/* STATISTICS CARDS */}
         <Stack direction={{ xs: "column", md: "row" }} spacing={2} mb={3}>
           
-          {/* Average Success Rate Card */}
-          <Paper
-            sx={{
-              flex: 1,
-              p: 3,
-              borderRadius: 3,
-              background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-              position: "relative",
-              overflow: "hidden"
-            }}
-          >
-            <Stack spacing={1}>
-              <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
-                Average Success Rate
-              </Typography>
-              <Typography variant="h3" fontWeight="800" color="white">
-                {avgSuccessRate}%
-              </Typography>
-              <Chip
-                icon={<TrendingUpIcon />}
-                label="Above Target"
-                size="small"
-                sx={{
-                  background: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                  fontWeight: 600,
-                  alignSelf: "flex-start"
-                }}
-              />
-            </Stack>
-          </Paper>
-
-          {/* Average Failure Rate Card */}
-          <Paper
-            sx={{
-              flex: 1,
-              p: 3,
-              borderRadius: 3,
-              background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
-              position: "relative",
-              overflow: "hidden"
-            }}
-          >
-            <Stack spacing={1}>
-              <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.9)", fontWeight: 600 }}>
-                Average Failure Rate
-              </Typography>
-              <Typography variant="h3" fontWeight="800" color="white">
-                {avgFailureRate}%
-              </Typography>
-              <Chip
-                icon={<TrendingDownIcon />}
-                label="Monitor Closely"
-                size="small"
-                sx={{
-                  background: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                  fontWeight: 600,
-                  alignSelf: "flex-start"
-                }}
-              />
-            </Stack>
-          </Paper>
+        
 
           {/* Total Reports Card */}
           <Paper
