@@ -1,7 +1,7 @@
 // ============================================================
 // IMPORTS: React hooks and Material-UI components
 // ============================================================
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import {
   TextField,
   Button,
@@ -18,19 +18,26 @@ import {
   Divider,
   Chip,
   InputAdornment,
-  IconButton
+  IconButton,
+  
 } from "@mui/material";
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 // React Router hook - allows navigation between pages
-import { useNavigate } from "react-router-dom";
+import { useAsyncError, useNavigate } from "react-router-dom";
 
 // Import product and work order data
-import { products } from "../../entities/product";
-import {
-  getWorkOrders,
-  saveWorkOrders,
-  generateWorkOrderId
-} from "../entities/workOrders";
+// import { products } from "../../entities/product"; Removed as we use DB
+// import {
+//   getWorkOrders,
+//   saveWorkOrders,
+//   generateWorkOrderId
+// } from "../entities/workOrders";      Removed as we use DB
+
+
+import { getAllProducts } from "../../product-bom/api/productApi";
+import { createBatchWorkOrders } from "../api/workOrderApi";
 
 // Material-UI Icons
 import WorkIcon from '@mui/icons-material/Work';
@@ -61,6 +68,12 @@ const CreateWorkOrder = () => {
   // ============================================================
   const [productId, setProductId] = useState("");
 
+  const [products, setProducts] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
   // ============================================================
   // STATE 2: qty (Quantity per batch)
   // SYNTAX: const [qty, setQty] = useState("1");
@@ -88,6 +101,21 @@ const CreateWorkOrder = () => {
   // REASON: Schedule production for future dates
   // ============================================================
   const [scheduledDate, setScheduledDate] = useState("");
+
+
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getAllProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to load products:", err);
+        setError(err.message);
+      }
+    };
+    loadProducts();
+  }, []);
 
   // ============================================================
   // COMPUTED VALUE 1: qtyNumForCalc
@@ -127,45 +155,29 @@ const CreateWorkOrder = () => {
   // 
   // REASON: Handle the "Create Work Order" button click
   // ============================================================
-  const createOrders = () => {
-    // STEP 1: Get existing work orders to add to
-    const existing = getWorkOrders();
+  const createOrders = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    // STEP 2: Get current timestamp
-    const now = new Date().toISOString();
+      // Create work order data
+      const orderData = {
+        productId: Number(productId),
+        quantity: qtyNumForCalc,
+        scheduledDate: scheduledDate || null
+      };
 
-    // STEP 3: Create new work orders
-    // Array.from({ length: batchesNumForCalc }).map()
-    //   - Creates array with X empty items (X = number of batches)
-    //   - map() transforms each into a work order object
-    const newOrders = Array.from({ length: batchesNumForCalc }).map(() => ({
-      // Unique ID for this work order
-      workOrderId: generateWorkOrderId(),
+      // Call API to create batch work orders
+      await createBatchWorkOrders(orderData, batchesNumForCalc);
 
-      // Which product to manufacture
-      productId: Number(productId),
-
-      // How many units to produce in this batch
-      quantity: qtyNumForCalc,
-
-      // Current status (starts as PLANNED)
-      status: "PLANNED",
-
-      // When this order was created
-      createdAt: now,
-
-      // When to start/complete this order
-      scheduledDate,
-
-      // When it was finished (null until completed)
-      completedAt: null
-    }));
-
-    // STEP 4: Merge existing + new orders and save
-    saveWorkOrders([...existing, ...newOrders]);
-
-    // STEP 5: Go to work orders page to see them
-    navigate("/workorder");
+      // Navigate to work orders page
+      navigate("/workorder");
+    } catch (err) {
+      console.error("Failed to create work orders:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ============================================================
@@ -200,7 +212,7 @@ const CreateWorkOrder = () => {
       }}
     >
       <Container maxWidth="lg">
-        
+
         {/* ===== HEADER SECTION ===== */}
         <Paper
           elevation={0}
@@ -226,7 +238,7 @@ const CreateWorkOrder = () => {
             >
               <ArrowBackIcon />
             </IconButton>
-            
+
             {/* Icon box */}
             <Box
               sx={{
@@ -241,7 +253,7 @@ const CreateWorkOrder = () => {
             >
               <WorkIcon sx={{ color: "white", fontSize: 28 }} />
             </Box>
-            
+
             {/* Title */}
             <Box flex={1}>
               <Typography variant="h4" fontWeight="700" color="text.primary">
@@ -268,8 +280,14 @@ const CreateWorkOrder = () => {
         </Paper>
 
         {/* ===== MAIN CONTENT: Form (Left) + Summary (Right) ===== */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
         <Grid container spacing={3}>
-          
+
           {/* ===== LEFT SECTION: Form Inputs ===== */}
           <Grid item xs={12} md={7}>
             <Paper
@@ -286,7 +304,7 @@ const CreateWorkOrder = () => {
               </Typography>
 
               <Stack spacing={3}>
-                
+
                 {/* ===== FIELD 1: Product Selection ===== */}
                 <Box>
                   <Typography variant="subtitle2" fontWeight="600" mb={1} color="text.secondary">
@@ -383,7 +401,7 @@ const CreateWorkOrder = () => {
 
                 {/* ===== FIELDS 3 & 4: Quantity and Batches ===== */}
                 <Grid container spacing={2}>
-                  
+
                   {/* Quantity per Batch */}
                   <Grid item xs={12} sm={6}>
                     <Box>
@@ -482,9 +500,9 @@ const CreateWorkOrder = () => {
                     variant="contained"
                     fullWidth
                     size="large"
-                    startIcon={<CheckCircleIcon />}
+                    startIcon={loading ? <CircularProgress size={20} /> : <CheckCircleIcon />}
                     onClick={createOrders}
-                    disabled={!productId || !scheduledDate}
+                    disabled={!productId || !scheduledDate || loading}
                     sx={{
                       background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                       borderRadius: 3,
@@ -502,7 +520,7 @@ const CreateWorkOrder = () => {
                       }
                     }}
                   >
-                    Create Work Order
+                    {loading ? "Creating..." : "Create Work Order"}
                   </Button>
 
                   {/* Cancel button - goes back to previous page */}
@@ -536,7 +554,7 @@ const CreateWorkOrder = () => {
           {/* ===== RIGHT SECTION: Summary and Info ===== */}
           <Grid item xs={12} md={5}>
             <Stack spacing={3}>
-              
+
               {/* Order Summary Card */}
               <Card
                 sx={{
@@ -603,10 +621,10 @@ const CreateWorkOrder = () => {
                         {scheduledDate
                           // Convert date string to readable format
                           ? new Date(scheduledDate).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric"
-                            })
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric"
+                          })
                           : "Not set"}
                       </Typography>
                     </Box>
@@ -683,6 +701,6 @@ const CreateWorkOrder = () => {
 };
 
 // ============================================================
-// EXPORT: Make component available
+// EXPORT: Make component availableL
 // ============================================================
 export default CreateWorkOrder;

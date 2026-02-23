@@ -1,4 +1,4 @@
-// src/auth/authApi.js
+  // src/auth/authApi.js
 // This file handles ALL API calls to the ASP.NET backend
 // Uses axios for cleaner error handling and automatic JSON parsing
 // Includes JWT token management, decoding, expiration checking
