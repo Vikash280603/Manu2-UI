@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
 Box, Card, CardContent, Typography, Grid, Button, Chip,
 Stack, Alert, Divider, Container, Paper, alpha, LinearProgress,
-IconButton, Badge, CircularProgress
+IconButton, Badge, CircularProgress, Avatar, Tooltip
 } from "@mui/material";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -19,8 +19,12 @@ import WorkIcon from "@mui/icons-material/Work";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
+import HomeIcon from "@mui/icons-material/Home";
+
 // ✅ CHANGE: Import API functions
 import { getAllProducts } from "../../product-bom/api/productApi";
+import { getCurrentUser } from "../../../auth/authApi";
+
 import {
 getAllWorkOrders,
 allocateMaterials as allocateMaterialsApi,
@@ -73,6 +77,15 @@ const [error, setError] = useState("");
 // ✅ NEW: Loading states
 const [loading, setLoading] = useState(true);
 const [processingOrderId, setProcessingOrderId] = useState(null);
+
+// ✅ NEWLY ADDED - Get current user to check role
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+
+  // ✅ NEWLY ADDED - Handler for home icon click (admin only)
+  const handleHomeClick = () => {
+    navigate('/analytics');
+  };
 
 // ✅ CHANGE: Load from API
 useEffect(() => {
@@ -282,19 +295,29 @@ alignItems={{ xs: "flex-start", md: "center" }}
 spacing={2}
 >
 <Stack direction="row" spacing={2} alignItems="center">
-<Box
-sx={{
-width: 48,
-height: 48,
-borderRadius: 2,
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center"
-}}
->
-<WorkIcon sx={{ color: "white", fontSize: 28 }} />
-</Box>
+{/* ✅ UPDATED: Conditionally show Home icon for admin or Work icon for others */}
+  {isAdmin ? (
+    <Tooltip title="Go to Analytics">
+      <Avatar 
+        onClick={handleHomeClick}
+        sx={{ 
+          bgcolor: '#f39c12', 
+          cursor: 'pointer',  // ✅ Pointer cursor
+          '&:hover': {  // ✅ Hover effect
+            transform: 'scale(1.1)',
+            boxShadow: '0 4px 12px rgba(243, 156, 18, 0.3)',
+          },
+          transition: 'all 0.3s ease',
+        }}
+      >  
+        <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
+      </Avatar>
+    </Tooltip>
+  ) : (
+    <Box sx={{ bgcolor: '#f39c12', p: 1.5, borderRadius: 2 }}>
+      <WorkIcon sx={{ color: 'white', fontSize: 24 }} />  {/* ✅ Work icon for non-admin */}
+    </Box>
+  )}
 <Box>
 <Typography variant="h4" fontWeight="700" color="text.primary">
 Production Work Orders

@@ -15,7 +15,9 @@ import {
   Paper,
   alpha,
   Divider,
-  IconButton
+  IconButton,
+  Avatar,
+  Tooltip
 } from "@mui/material";
 
 // Import product data
@@ -23,6 +25,7 @@ import { products } from "../../entities/product";
 
 // Import quality check retrieval function
 import { getQualityChecks } from "../entities/quality";
+import { getCurrentUser } from "../../../auth/authApi";
 
 // Material-UI Icons
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -35,6 +38,10 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ScienceIcon from '@mui/icons-material/Science';
 
+import HomeIcon from "@mui/icons-material/Home";
+
+import { useNavigate } from "react-router-dom";
+
 // ============================================================
 // MAIN COMPONENT: QualityCheckList
 // REASON: Display all completed quality inspections with statistics
@@ -46,6 +53,16 @@ const QualityCheckList = () => {
   // REASON: Store all quality inspection records fetched from storage
   // ============================================================
   const [quality, setQuality] = useState([]);
+
+  const navigate = useNavigate();
+  // ✅ NEWLY ADDED - Get current user to check role
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+
+  // ✅ NEWLY ADDED - Handler for home icon click (admin only)
+  const handleHomeClick = () => {
+    navigate('/analytics');
+  };
 
   // ============================================================
   // HOOK: useEffect (Load quality checks on mount)
@@ -172,6 +189,31 @@ const QualityCheckList = () => {
           >
             {/* Title section */}
             <Stack direction="row" spacing={2} alignItems="center">
+            {/* ✅ UPDATED: Conditionally show Home icon for admin or Science icon for others */}
+            {isAdmin ? (
+              <Tooltip title="Go to Analytics">
+                <Box
+                  onClick={handleHomeClick}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 2,
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: 'pointer',  // ✅ Pointer cursor
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <HomeIcon sx={{ color: 'white', fontSize: 24 }} />  {/* ✅ Home icon for admin */}
+                </Box>
+              </Tooltip>
+            ) : (
               <Box
                 sx={{
                   width: 48,
@@ -183,8 +225,9 @@ const QualityCheckList = () => {
                   justifyContent: "center"
                 }}
               >
-                <VerifiedIcon sx={{ color: "white", fontSize: 28 }} />
+                <VerifiedIcon sx={{ color: 'white', fontSize: 24 }} />  {/* ✅ Verified icon for non-admin */}
               </Box>
+            )}
               <Box>
                 <Typography variant="h4" fontWeight="700" color="text.primary">
                   Quality Inspections
