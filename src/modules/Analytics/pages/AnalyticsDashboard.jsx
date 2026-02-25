@@ -1,31 +1,20 @@
-// ============================================================
-// IMPORTS: React hooks and Material-UI components
-// ============================================================
+
+// UPDATED AnalyticsDashboard.jsx - Uses real API
+
 import React, { useEffect, useState } from "react";
 import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Stack,
-  Button,
-  Divider,
-  Paper,
-  Container,
-  Chip,
-  LinearProgress,
-  IconButton,
-  alpha
+  Box, Typography, Grid, Card, CardContent, Stack, Button,
+  Divider, Paper, Container, Chip, LinearProgress, IconButton,
+  alpha, CircularProgress, Alert
 } from "@mui/material";
 
-// Pie chart component from Material-UI charts library
 import { PieChart } from "@mui/x-charts/PieChart";
-
-// React Router hook for navigation
 import { useNavigate } from "react-router-dom";
 
-// Material-UI Icons
+// ✅ CHANGE: Import API functions
+import { getAllQualityChecks } from "../../QualityControl/api/qualityCheckApi";
+import { calculateMetrics } from "../../Analytics/utils/analytics";
+
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -36,130 +25,46 @@ import WorkIcon from '@mui/icons-material/Work';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CategoryIcon from '@mui/icons-material/Category';
 
-// Import report functions
-import { getReports, saveReports, generateReportId } from "../entities/reports";
-
-// Import analytics utility function
-import { calculateMetrics } from "../utils/analytics";
-
-// ============================================================
-// CONSTANT: Storage key for Quality Checks
-// SYNTAX: const QUALITY_KEY = "manutrack_quality_v1";
-// REASON: Access quality inspection data from localStorage
-// ============================================================
-const QUALITY_KEY = "manutrack_quality_v1";
-
-// ============================================================
-// MAIN COMPONENT: AnalyticsDashboard
-// REASON: Show real-time manufacturing metrics and compliance overview
-// ============================================================
 const AnalyticsDashboard = () => {
-  // ============================================================
-  // HOOK: useNavigate
-  // REASON: Navigate to different pages (products, inventory, etc.)
-  // ============================================================
   const navigate = useNavigate();
 
-  // ============================================================
-  // STATE: latestReport (Most recent auto-generated report)
-  // SYNTAX: const [latestReport, setLatestReport] = useState(null);
-  // REASON: Store the latest report data for display
-  // ============================================================
-  const [latestReport, setLatestReport] = useState(null);
+  // ✅ NEW: State for data
+  const [qualityChecks, setQualityChecks] = useState([]);
+  const [metrics, setMetrics] = useState(null);
+  
+  // ✅ NEW: Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // ============================================================
-  // HOOK: useEffect (Generate and save analytics report on load)
-  // 
-  // FIX FOR DUPLICATE REPORTS:
-  // - Check if a report was already created in the last 5 seconds
-  // - Compare metrics of last report with current metrics
-  // - Only create NEW report if metrics have changed
-  // - This prevents duplicate reports from:
-  //   * React Strict Mode (double mounting in dev)
-  //   * HMR/Hot reload
-  //   * Navigating back to dashboard
-  //
-  // LOGIC:
-  //   STEP 1: Fetch quality check data from localStorage
-  //   STEP 2: Calculate metrics from quality data
-  //   STEP 3: Get existing reports from storage
-  //   STEP 4: Check if we already have a recent report with same metrics
-  //   STEP 5: If yes → just display it (don't create new one)
-  //   STEP 6: If no → create new report and save it
-  //   STEP 7: Update state with latest report
-  //
-  // REASON: 
-  //   - Auto-generate and archive analytics data
-  //   - Prevent duplicate reports at same timestamp
-  //   - Only create report when metrics actually change
-  // ============================================================
+  // ✅ CHANGE: Load from API and calculate metrics
   useEffect(() => {
-    // STEP 1: Get quality data from storage
-    const qualityData = JSON.parse(localStorage.getItem(QUALITY_KEY)) || [];
-
-    // STEP 2: Calculate metrics from quality data
-    const metrics = calculateMetrics(qualityData);
-    // Returns something like:
-    // { successRate: 92.5, failureRate: 7.5, totalChecks: 40, passed: 37, failed: 3 }
-
-    // STEP 3: Get existing reports
-    const existing = getReports();
-    // Returns: [] or [previous report, previous report, ...]
-
-    // STEP 4: Get the most recent report
-    const lastReport = existing.length > 0 ? existing[existing.length - 1] : null;
-
-    // STEP 5: Check if we should create a NEW report or reuse the last one
-    // CONDITIONS TO SKIP CREATING NEW REPORT:
-    //   1. lastReport exists (there's a previous report)
-    //   2. Success rate is identical (no change in data)
-    //   3. Failure rate is identical (no change in data)
-    //   4. Report was created less than 5 seconds ago (not stale)
-    if (
-      lastReport &&
-      lastReport.metrics.successRate === metrics.successRate &&
-      lastReport.metrics.failureRate === metrics.failureRate &&
-      (Date.now() - new Date(lastReport.generatedDate).getTime()) < 5000
-    ) {
-      // Report already exists and is recent → just display it
-      // This prevents duplicates when component mounts multiple times
-      setLatestReport(lastReport);
-      return; // EXIT: Don't create a new report
-    }
-
-    // STEP 6: Create NEW report (only if metrics changed or no recent report exists)
-    const newReport = {
-      reportId: generateReportId(),              // "RPT-1704067245123-a7f9x2"
-      generatedDate: new Date().toISOString(),   // Timestamp of when report was created
-      metrics                                     // { successRate: 92.5, failureRate: 7.5, ... }
-    };
-
-    // STEP 7: Save new report + all existing reports
-    saveReports([...existing, newReport]);
-
-    // STEP 8: Update state to display latest report
-    setLatestReport(newReport);
+    loadData();
   }, []);
 
-  // ============================================================
-  // CONDITIONAL RENDER: Show nothing while loading
-  // LOGIC: If latestReport hasn't loaded yet, return null
-  // REASON: Prevent errors from accessing undefined data
-  // ============================================================
-  if (!latestReport) return null;
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-  // ============================================================
-  // EXTRACT METRICS: Get success and failure rates from report
-  // SYNTAX: const { successRate, failureRate } = latestReport.metrics;
-  // REASON: Use these values throughout the component
-  // ============================================================
-  const { successRate, failureRate } = latestReport.metrics;
+      const qualityData = await getAllQualityChecks();
+      setQualityChecks(qualityData);
 
-  // ============================================================
-  // NAVIGATION ITEMS: Quick links to other pages
-  // SYNTAX: const navItems = [{ label: ..., path: ..., icon: ... }, ...]
-  // REASON: Show navigation cards to jump to different modules
-  // ============================================================
+      // Calculate metrics from quality checks
+      const calculatedMetrics = calculateMetrics(qualityData);
+      setMetrics(calculatedMetrics);
+    } catch (err) {
+      console.error("Failed to load analytics:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ NEW: Refresh function
+  const handleRefresh = () => {
+    loadData();
+  };
+
   const navItems = [
     { label: "Products", path: "/products", icon: <CategoryIcon /> },
     { label: "Inventory", path: "/inventory", icon: <InventoryIcon /> },
@@ -167,9 +72,92 @@ const AnalyticsDashboard = () => {
     { label: "Quality", path: "/quality", icon: <VerifiedIcon /> }
   ];
 
-  // ============================================================
-  // RETURN: The UI
-  // ============================================================
+  // ✅ NEW: Loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: 'white' }} />
+      </Box>
+    );
+  }
+
+  // ✅ NEW: Empty state (no quality checks yet)
+  if (!metrics || qualityChecks.length === 0) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 4
+        }}
+      >
+        <Container maxWidth="sm">
+          <Paper
+            elevation={0}
+            sx={{
+              background: "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(10px)",
+              borderRadius: 4,
+              p: 6,
+              textAlign: "center"
+            }}
+          >
+            <Box
+              sx={{
+                width: 120,
+                height: 120,
+                borderRadius: "50%",
+                background: alpha("#667eea", 0.1),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto",
+                mb: 3
+              }}
+            >
+              <AssessmentIcon sx={{ fontSize: 64, color: "#667eea" }} />
+            </Box>
+
+            <Typography variant="h4" fontWeight="700" mb={2} color="text.primary">
+              No Analytics Data Yet
+            </Typography>
+            <Typography variant="body1" color="text.secondary" mb={4}>
+              Complete quality inspections to see analytics and compliance metrics
+            </Typography>
+
+            <Button
+              variant="contained"
+              onClick={() => navigate("/quality")}
+              sx={{
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: 3,
+                textTransform: "none",
+                fontWeight: 700,
+                px: 4,
+                py: 1.5
+              }}
+            >
+              Go to Quality Checks
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
+
+  const { successRate, failureRate } = metrics;
+
   return (
     <Box
       sx={{
@@ -180,7 +168,7 @@ const AnalyticsDashboard = () => {
     >
       <Container maxWidth="xl">
         
-        {/* ===== HEADER SECTION ===== */}
+        {/* HEADER */}
         <Paper
           elevation={0}
           sx={{
@@ -197,7 +185,6 @@ const AnalyticsDashboard = () => {
             alignItems={{ xs: "flex-start", md: "center" }}
             spacing={2}
           >
-            {/* Title section */}
             <Stack direction="row" spacing={2} alignItems="center">
               <Box
                 sx={{
@@ -222,31 +209,31 @@ const AnalyticsDashboard = () => {
               </Box>
             </Stack>
 
-            {/* Control buttons section */}
             <Stack direction="row" spacing={2}>
-             
-              {/* View Reports button */}
-              <Button
-                variant="contained"
-                startIcon={<AssessmentIcon />}
-                onClick={() => navigate("report")}
+              {/* ✅ NEW: Refresh button */}
+              <IconButton
+                onClick={handleRefresh}
+                disabled={loading}
                 sx={{
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  px: 3,
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 600,
-                  boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+                  background: alpha("#667eea", 0.1),
+                  color: "#667eea",
+                  "&:hover": { background: alpha("#667eea", 0.2) }
                 }}
               >
-                View Reports
-              </Button>
+                <RefreshIcon />
+              </IconButton>
             </Stack>
           </Stack>
         </Paper>
 
-        {/* ===== QUICK NAVIGATION CARDS ===== */}
+        {/* ✅ NEW: Error display */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }} onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
+
+        {/* QUICK NAVIGATION */}
         <Grid container spacing={2} mb={3}>
           {navItems.map((item) => (
             <Grid item xs={12} sm={6} md={3} key={item.path}>
@@ -290,10 +277,10 @@ const AnalyticsDashboard = () => {
           ))}
         </Grid>
 
-        {/* ===== MAIN ANALYTICS GRID ===== */}
+        {/* MAIN ANALYTICS */}
         <Grid container spacing={3}>
           
-          {/* ===== SUCCESS RATE CARD ===== */}
+          {/* SUCCESS RATE CARD */}
           <Grid item xs={12} md={4}>
             <Card
               sx={{
@@ -306,7 +293,6 @@ const AnalyticsDashboard = () => {
             >
               <CardContent sx={{ position: "relative", zIndex: 1 }}>
                 <Stack spacing={2}>
-                  {/* Icon box */}
                   <Box
                     sx={{
                       width: 56,
@@ -321,17 +307,14 @@ const AnalyticsDashboard = () => {
                     <CheckCircleIcon sx={{ color: "white", fontSize: 32 }} />
                   </Box>
                   
-                  {/* Title */}
                   <Typography variant="h6" color="white" fontWeight="600">
                     Success Rate
                   </Typography>
                   
-                  {/* Large percentage display */}
                   <Typography variant="h2" color="white" fontWeight="800">
                     {successRate}%
                   </Typography>
                   
-                  {/* Progress bar */}
                   <LinearProgress
                     variant="determinate"
                     value={successRate}
@@ -346,10 +329,9 @@ const AnalyticsDashboard = () => {
                     }}
                   />
                   
-                  {/* Status badge */}
                   <Chip
                     icon={<TrendingUpIcon />}
-                    label="Excellent Performance"
+                    label={successRate >= 90 ? "Excellent Performance" : "Good Performance"}
                     sx={{
                       background: "rgba(255, 255, 255, 0.2)",
                       color: "white",
@@ -360,7 +342,6 @@ const AnalyticsDashboard = () => {
                 </Stack>
               </CardContent>
               
-              {/* Decorative circle background */}
               <Box
                 sx={{
                   position: "absolute",
@@ -375,7 +356,7 @@ const AnalyticsDashboard = () => {
             </Card>
           </Grid>
 
-          {/* ===== FAILURE RATE CARD ===== */}
+          {/* FAILURE RATE CARD */}
           <Grid item xs={12} md={4}>
             <Card
               sx={{
@@ -388,7 +369,6 @@ const AnalyticsDashboard = () => {
             >
               <CardContent sx={{ position: "relative", zIndex: 1 }}>
                 <Stack spacing={2}>
-                  {/* Icon box */}
                   <Box
                     sx={{
                       width: 56,
@@ -403,17 +383,14 @@ const AnalyticsDashboard = () => {
                     <ErrorIcon sx={{ color: "white", fontSize: 32 }} />
                   </Box>
                   
-                  {/* Title */}
                   <Typography variant="h6" color="white" fontWeight="600">
                     Failure Rate
                   </Typography>
                   
-                  {/* Large percentage display */}
                   <Typography variant="h2" color="white" fontWeight="800">
                     {failureRate}%
                   </Typography>
                   
-                  {/* Progress bar */}
                   <LinearProgress
                     variant="determinate"
                     value={failureRate}
@@ -428,9 +405,8 @@ const AnalyticsDashboard = () => {
                     }}
                   />
                   
-                  {/* Status badge */}
                   <Chip
-                    label="Needs Attention"
+                    label={failureRate <= 10 ? "Within Limits" : "Needs Attention"}
                     sx={{
                       background: "rgba(255, 255, 255, 0.2)",
                       color: "white",
@@ -441,7 +417,6 @@ const AnalyticsDashboard = () => {
                 </Stack>
               </CardContent>
               
-              {/* Decorative circle background */}
               <Box
                 sx={{
                   position: "absolute",
@@ -456,7 +431,7 @@ const AnalyticsDashboard = () => {
             </Card>
           </Grid>
 
-          {/* ===== PIE CHART CARD ===== */}
+          {/* PIE CHART */}
           <Grid item xs={12} md={4}>
             <Card
               sx={{
@@ -467,45 +442,43 @@ const AnalyticsDashboard = () => {
               }}
             >
               <CardContent>
-                {/* Chart title */}
                 <Typography variant="h6" fontWeight="700" mb={2} color="text.primary">
                   Quality Distribution
                 </Typography>
 
-                {/* Pie chart showing success vs failure breakdown */}
                 <PieChart
                   series={[
                     {
-                      innerRadius: 60,              // Makes it a donut chart
-                      outerRadius: 100,             // Size of pie
-                      paddingAngle: 5,              // Space between slices
-                      cornerRadius: 8,              // Rounded corners
+                      innerRadius: 60,
+                      outerRadius: 100,
+                      paddingAngle: 5,
+                      cornerRadius: 8,
                       data: [
                         {
                           id: 0,
-                          value: successRate,        // Slice size
+                          value: successRate,
                           label: "Success",
-                          color: "#38ef7d"           // Green
+                          color: "#38ef7d"
                         },
                         {
                           id: 1,
-                          value: failureRate,        // Slice size
+                          value: failureRate,
                           label: "Failure",
-                          color: "#ff6a00"           // Orange
+                          color: "#ff6a00"
                         }
                       ]
                     }
                   ]}
                   height={240}
                   slotProps={{
-                    legend: { hidden: false }      // Show legend
+                    legend: { hidden: false }
                   }}
                 />
               </CardContent>
             </Card>
           </Grid>
 
-          {/* ===== COMPLIANCE OVERVIEW CARD ===== */}
+          {/* COMPLIANCE OVERVIEW */}
           <Grid item xs={12}>
             <Card
               sx={{
@@ -515,13 +488,12 @@ const AnalyticsDashboard = () => {
               }}
             >
               <CardContent>
-                {/* Header with title and badge */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                   <Typography variant="h5" fontWeight="700" color="text.primary">
                     Compliance Overview
                   </Typography>
                   <Chip
-                    label="Auto-generated"
+                    label="Real-time"
                     color="primary"
                     variant="outlined"
                     size="small"
@@ -530,10 +502,8 @@ const AnalyticsDashboard = () => {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {/* Metrics grid */}
                 <Grid container spacing={3}>
                   
-                  {/* Success metrics box */}
                   <Grid item xs={12} md={6}>
                     <Paper
                       sx={{
@@ -551,13 +521,12 @@ const AnalyticsDashboard = () => {
                           {successRate}%
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Quality inspections passed
+                          {metrics.passed} of {metrics.totalChecks} inspections passed
                         </Typography>
                       </Stack>
                     </Paper>
                   </Grid>
 
-                  {/* Failure metrics box */}
                   <Grid item xs={12} md={6}>
                     <Paper
                       sx={{
@@ -575,13 +544,12 @@ const AnalyticsDashboard = () => {
                           {failureRate}%
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Quality inspections failed
+                          {metrics.failed} of {metrics.totalChecks} inspections failed
                         </Typography>
                       </Stack>
                     </Paper>
                   </Grid>
 
-                  {/* Last updated info box */}
                   <Grid item xs={12}>
                     <Paper
                       sx={{
@@ -593,16 +561,14 @@ const AnalyticsDashboard = () => {
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack>
                           <Typography variant="overline" color="text.secondary" fontWeight="600">
-                            Last Updated
+                            Total Units Inspected
                           </Typography>
-                          {/* Format and display report generation time */}
                           <Typography variant="h6" fontWeight="600" color="text.primary">
-                            {new Date(latestReport.generatedDate).toLocaleString()}
+                            {metrics.totalInspected.toLocaleString()} units
                           </Typography>
                         </Stack>
-                        {/* Info note */}
                         <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
-                          Based on Quality Inspection records
+                          Based on {metrics.totalChecks} quality inspection records
                         </Typography>
                       </Stack>
                     </Paper>
@@ -617,7 +583,4 @@ const AnalyticsDashboard = () => {
   );
 };
 
-// ============================================================
-// EXPORT: Make component available
-// ============================================================
 export default AnalyticsDashboard;

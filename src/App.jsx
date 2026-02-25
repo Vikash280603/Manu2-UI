@@ -9,7 +9,7 @@
 // BrowserRouter provides routing capability to the app
 // We rename it as `Router` just for cleaner JSX usage
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+// import { Toaster } from 'react-hot-toast';
 // Global CSS for the App component
 import './App.css';
 
@@ -46,6 +46,7 @@ function App() {
     // Router must wrap the entire app
     // It listens to URL changes and renders matching routes
     <Router>
+      
 
       {/* Routes acts as a container for all Route components */}
       <Routes>
