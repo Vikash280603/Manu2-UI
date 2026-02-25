@@ -68,7 +68,7 @@ const AnalyticsDashboard = () => {
   const navItems = [
     { label: "Products", path: "/products", icon: <CategoryIcon /> },
     { label: "Inventory", path: "/inventory", icon: <InventoryIcon /> },
-    { label: "Work Orders", path: "/workorder", icon: <WorkIcon /> },
+    { label: "WorkOrders", path: "/workorder", icon: <WorkIcon /> },
     { label: "Quality", path: "/quality", icon: <VerifiedIcon /> }
   ];
 
@@ -234,7 +234,7 @@ const AnalyticsDashboard = () => {
         )}
 
         {/* QUICK NAVIGATION */}
-        <Grid container spacing={2} mb={3}>
+        <Grid container spacing={19.5} mb={3}>
           {navItems.map((item) => (
             <Grid item xs={12} sm={6} md={3} key={item.path}>
               <Card
@@ -243,6 +243,8 @@ const AnalyticsDashboard = () => {
                   backdropFilter: "blur(10px)",
                   borderRadius: 3,
                   cursor: "pointer",
+                  height: "100%",
+                  width: "170%",
                   transition: "all 0.3s ease",
                   "&:hover": {
                     transform: "translateY(-4px)",
@@ -252,7 +254,7 @@ const AnalyticsDashboard = () => {
                 onClick={() => navigate(item.path)}
               >
                 <CardContent>
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction="row" spacing={2 } alignItems="center">
                     <Box
                       sx={{
                         width: 40,
@@ -278,7 +280,7 @@ const AnalyticsDashboard = () => {
         </Grid>
 
         {/* MAIN ANALYTICS */}
-        <Grid container spacing={3}>
+        <Grid container spacing={24}>
           
           {/* SUCCESS RATE CARD */}
           <Grid item xs={12} md={4}>
@@ -287,6 +289,7 @@ const AnalyticsDashboard = () => {
                 background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
                 borderRadius: 4,
                 height: "100%",
+                width: "170%",
                 position: "relative",
                 overflow: "hidden"
               }}
@@ -363,6 +366,7 @@ const AnalyticsDashboard = () => {
                 background: "linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)",
                 borderRadius: 4,
                 height: "100%",
+                width: "170%",
                 position: "relative",
                 overflow: "hidden"
               }}
@@ -479,12 +483,14 @@ const AnalyticsDashboard = () => {
           </Grid>
 
           {/* COMPLIANCE OVERVIEW */}
-          <Grid item xs={12}>
+          <Grid item xs={12} >
             <Card
               sx={{
                 background: "rgba(255, 255, 255, 0.95)",
                 backdropFilter: "blur(10px)",
-                borderRadius: 4
+                borderRadius: 4,
+                width: "132%",
+                
               }}
             >
               <CardContent>
@@ -502,13 +508,14 @@ const AnalyticsDashboard = () => {
 
                 <Divider sx={{ mb: 3 }} />
 
-                <Grid container spacing={3}>
+                <Grid container spacing={10}>
                   
                   <Grid item xs={12} md={6}>
                     <Paper
                       sx={{
                         p: 3,
                         borderRadius: 3,
+                        width: "100%",
                         background: alpha("#38ef7d", 0.1),
                         border: `2px solid ${alpha("#38ef7d", 0.3)}`
                       }}
@@ -532,6 +539,7 @@ const AnalyticsDashboard = () => {
                       sx={{
                         p: 3,
                         borderRadius: 3,
+                        width: "100%",
                         background: alpha("#ff6a00", 0.1),
                         border: `2px solid ${alpha("#ff6a00", 0.3)}`
                       }}
@@ -555,6 +563,7 @@ const AnalyticsDashboard = () => {
                       sx={{
                         p: 3,
                         borderRadius: 3,
+                        width: "150%",
                         background: alpha("#667eea", 0.05)
                       }}
                     >
@@ -566,10 +575,11 @@ const AnalyticsDashboard = () => {
                           <Typography variant="h6" fontWeight="600" color="text.primary">
                             {metrics.totalInspected.toLocaleString()} units
                           </Typography>
-                        </Stack>
+                        
                         <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
                           Based on {metrics.totalChecks} quality inspection records
                         </Typography>
+                        </Stack>
                       </Stack>
                     </Paper>
                   </Grid>
