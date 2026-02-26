@@ -10,6 +10,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import Inventory2TwoToneIcon from "@mui/icons-material/Inventory2TwoTone";  
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";  
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";  
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import HomeIcon from "@mui/icons-material/Home";
   
@@ -80,6 +81,30 @@ function ProductList() {
   
   const activeCount = products.filter(p => p.status === 'ACTIVE').length;  
   
+  
+const pillTagSx = {
+  bgcolor: 'primary.main',
+  color: 'white',
+  borderRadius: 999,
+  px: 2,                      // Slightly reduced horizontal padding
+  py: 0.4,                      // Slightly reduced vertical padding
+  display: 'inline-flex',
+  alignItems: 'center',
+  fontWeight: 600,
+  
+  // --- UPDATED SIZE & FONT ---
+  fontSize: '0.9rem',          // Reduced font size (approx 12px)
+  fontFamily: 'Arial, sans-serif', 
+  // ---------------------------
+
+  lineHeight: 1,
+  userSelect: 'none',           // Often better for buttons/pills
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'scale(1.05)',   // Slightly subtler scale for smaller text
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+  },
+};
   return (  
     <Box  
       sx={{   
@@ -143,10 +168,31 @@ function ProductList() {
               </Box>  
             </Stack>  
   
-            <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>  
-              <Chip label={`Total: ${products.length}`} size="small" />  
-              <Chip label={`Active: ${activeCount}`} size="small" color="success" variant="outlined" />  
-            </Stack>  
+            <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}> 
+              <Box sx={pillTagSx}>Total: {products.length}</Box>
+              <Box sx={pillTagSx}>Active: {activeCount}</Box>
+
+              <Tooltip title="Logout">
+                <Avatar 
+                  onClick={() => {
+                  localStorage.removeItem('loggedInUser'); // Clear user session
+                  navigate('/login');
+                }}
+                  sx={{ 
+                    bgcolor: '#f94949ff',
+                    variant: 'rounded',
+                    cursor: 'pointer',  // ✅ Pointer cursor for clickable feel
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >  
+                  <LogoutIcon sx={{ color: 'white' }} />
+                </Avatar>
+              </Tooltip>
+            </Stack>
           </Stack>  
         </Container>  
       </Box>  

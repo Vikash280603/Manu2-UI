@@ -18,6 +18,7 @@ import VerifiedIcon from "@mui/icons-material/Verified";
 import WorkIcon from "@mui/icons-material/Work";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import HomeIcon from "@mui/icons-material/Home";
 
@@ -197,18 +198,123 @@ justifyContent: "center"
 );
 }
 
-if (orders.length === 0 && !loading) {
 return (
 <Box
 sx={{
 minHeight: "100vh",
 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
 py: 4
 }}
 >
+<Container maxWidth="xl">
+
+{/* HEADER */}
+<Paper
+elevation={0}
+sx={{
+background: "rgba(255, 255, 255, 0.95)",
+backdropFilter: "blur(10px)",
+borderRadius: 4,
+p: 4,
+mb: 3
+}}
+>
+<Stack
+direction={{ xs: "column", md: "row" }}
+justifyContent="space-between"
+alignItems={{ xs: "flex-start", md: "center" }}
+spacing={2}
+>
+<Stack direction="row" spacing={2} alignItems="center">
+{/* ✅ UPDATED: Conditionally show Home icon for admin or Work icon for others */}
+  {isAdmin ? (
+    <Tooltip title="Go to Analytics">
+      <Avatar 
+        onClick={handleHomeClick}
+        sx={{ 
+          bgcolor: '#667eea', 
+          cursor: 'pointer',  // ✅ Pointer cursor
+          '&:hover': {  // ✅ Hover effect
+            transform: 'scale(1.1)',
+            boxShadow: '0 4px 12px rgba(243, 156, 18, 0.3)',
+          },
+          transition: 'all 0.3s ease',
+        }}
+      >  
+        <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
+      </Avatar>
+    </Tooltip>
+  ) : (
+    <Box sx={{ bgcolor: '#f39c12', p: 1.5, borderRadius: 2 }}>
+      <WorkIcon sx={{ color: 'white', fontSize: 24 }} />  {/* ✅ Work icon for non-admin */}
+    </Box>
+  )}
+<Box>
+<Typography variant="h4" fontWeight="700" color="text.primary">
+Production Work Orders
+</Typography>
+<Typography variant="body2" color="text.secondary">
+Track, allocate & complete production tasks
+</Typography>
+</Box>
+</Stack>
+
+<Stack direction="row" spacing={3}>
+{/* ✅ NEW: Refresh button */}
+<IconButton
+onClick={handleRefresh}
+disabled={loading}
+sx={{
+background: alpha("#667eea", 0.1),
+color: "#667eea",
+"&:hover": {
+background: alpha("#667eea", 0.2)
+}
+}}
+>
+<RefreshIcon />
+</IconButton>
+
+<Button
+variant="contained"
+startIcon={<AddIcon />}
+onClick={() => navigate(`${location.pathname}/create`)}
+sx={{
+background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+borderRadius: 2,
+textTransform: "none",
+fontWeight: 600,
+px: 3,
+boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+}}
+>
+New Work Order
+</Button>
+<Button
+        variant=""
+        startIcon={<LogoutIcon />}
+        onClick={() => {
+          localStorage.removeItem('loggedInUser'); // Clear user session
+          navigate('/login');
+        }}
+        sx={{
+          bgcolor: '#f39c12',
+          borderRadius: 2,
+          textTransform: "none",
+          textColour: "white",
+          fontWeight: 600,
+          px: 3,
+          boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+          }}
+      >
+        Logout
+</Button>
+</Stack>
+</Stack>
+</Paper>
+{/* CONDITIONAL CONTENT - Empty state or Data */}
+{orders.length === 0 && !loading ? (
+// Empty state
 <Container maxWidth="sm">
 <Paper
 elevation={0}
@@ -263,106 +369,8 @@ Create First Work Order
 </Button>
 </Paper>
 </Container>
-</Box>
-);
-}
-
-return (
-<Box
-sx={{
-minHeight: "100vh",
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-py: 4
-}}
->
-<Container maxWidth="xl">
-
-{/* HEADER */}
-<Paper
-elevation={0}
-sx={{
-background: "rgba(255, 255, 255, 0.95)",
-backdropFilter: "blur(10px)",
-borderRadius: 4,
-p: 4,
-mb: 3
-}}
->
-<Stack
-direction={{ xs: "column", md: "row" }}
-justifyContent="space-between"
-alignItems={{ xs: "flex-start", md: "center" }}
-spacing={2}
->
-<Stack direction="row" spacing={2} alignItems="center">
-{/* ✅ UPDATED: Conditionally show Home icon for admin or Work icon for others */}
-  {isAdmin ? (
-    <Tooltip title="Go to Analytics">
-      <Avatar 
-        onClick={handleHomeClick}
-        sx={{ 
-          bgcolor: '#f39c12', 
-          cursor: 'pointer',  // ✅ Pointer cursor
-          '&:hover': {  // ✅ Hover effect
-            transform: 'scale(1.1)',
-            boxShadow: '0 4px 12px rgba(243, 156, 18, 0.3)',
-          },
-          transition: 'all 0.3s ease',
-        }}
-      >  
-        <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
-      </Avatar>
-    </Tooltip>
-  ) : (
-    <Box sx={{ bgcolor: '#f39c12', p: 1.5, borderRadius: 2 }}>
-      <WorkIcon sx={{ color: 'white', fontSize: 24 }} />  {/* ✅ Work icon for non-admin */}
-    </Box>
-  )}
-<Box>
-<Typography variant="h4" fontWeight="700" color="text.primary">
-Production Work Orders
-</Typography>
-<Typography variant="body2" color="text.secondary">
-Track, allocate & complete production tasks
-</Typography>
-</Box>
-</Stack>
-
-<Stack direction="row" spacing={2}>
-{/* ✅ NEW: Refresh button */}
-<IconButton
-onClick={handleRefresh}
-disabled={loading}
-sx={{
-background: alpha("#667eea", 0.1),
-color: "#667eea",
-"&:hover": {
-background: alpha("#667eea", 0.2)
-}
-}}
->
-<RefreshIcon />
-</IconButton>
-
-<Button
-variant="contained"
-startIcon={<AddIcon />}
-onClick={() => navigate(`${location.pathname}/create`)}
-sx={{
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-borderRadius: 2,
-textTransform: "none",
-fontWeight: 600,
-px: 3,
-boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
-}}
->
-New Work Order
-</Button>
-</Stack>
-</Stack>
-</Paper>
-
+) : (
+<>
 {/* STATISTICS */}
 <Grid container spacing={2} mb={3}>
 <Grid item xs={6} sm={3}>
@@ -712,9 +720,12 @@ Quality Approved ✓
 );
 })}
 </Grid>
+</>
+)}
 </Container>
 </Box>
 );
+
 };
 
 export default WorkOrderList;

@@ -15,6 +15,7 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 import HomeIcon from "@mui/icons-material/Home";
 
@@ -219,6 +220,27 @@ const InventoryList = () => {
                   Track materials and restock levels
                 </Typography>
               </Box>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant=""
+                startIcon={<LogoutIcon />}
+                onClick={() => {
+                  localStorage.removeItem('loggedInUser'); // Clear user session
+                  navigate('/login');
+                }}
+                sx={{
+                  bgcolor: '#f39c12',
+                  borderRadius: 2,
+                  textTransform: "none",
+                  textColour: "white",
+                  fontWeight: 600,
+                  px: 3,
+                  boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+                  }}
+              >
+                Logout
+              </Button>
             </Stack>
           </Stack>
         </Paper>
