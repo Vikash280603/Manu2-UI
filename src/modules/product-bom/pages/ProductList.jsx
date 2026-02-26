@@ -3,19 +3,23 @@
 import React, { useState, useEffect } from "react";  
 import {   
   Container, Typography, Button, Box, Grid, Stack, TextField,   
-  Paper, Avatar, Divider, IconButton, Chip, CircularProgress, Alert  
+  Paper, Avatar, Divider, IconButton, Chip, CircularProgress, Alert, Tooltip  
 } from "@mui/material";  
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";  
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";  
 import Inventory2TwoToneIcon from "@mui/icons-material/Inventory2TwoTone";  
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";  
 import DashboardCustomizeRoundedIcon from "@mui/icons-material/DashboardCustomizeRounded";  
+import LogoutIcon from "@mui/icons-material/Logout";
+
+import HomeIcon from "@mui/icons-material/Home";
   
 import ProductCard from "../components/ProductCard";  
 import EditProductModal from "../pages/EditProduct";  
   
 // ✅ CHANGE: Import API functions instead of localStorage data  
 import { getAllProducts } from "../../product-bom/api/productApi";  
+import { getCurrentUser } from "../../../auth/authApi";
   
 import { useNavigate } from "react-router-dom";  
   
@@ -30,6 +34,15 @@ function ProductList() {
   // ✅ NEW: Loading and error states  
   const [loading, setLoading] = useState(true);  
   const [error, setError] = useState("");  
+
+  // ✅ NEWLY ADDED - Get current user to check role
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+
+  // ✅ NEWLY ADDED - Handler for home icon click (admin only)
+  const handleHomeClick = () => {
+    navigate('/analytics');
+  };
   
   // ✅ CHANGE: Load products from API instead of localStorage  
   const loadProducts = async () => {  
@@ -68,6 +81,30 @@ function ProductList() {
   
   const activeCount = products.filter(p => p.status === 'ACTIVE').length;  
   
+  
+const pillTagSx = {
+  bgcolor: 'primary.main',
+  color: 'white',
+  borderRadius: 999,
+  px: 2,                      // Slightly reduced horizontal padding
+  py: 0.4,                      // Slightly reduced vertical padding
+  display: 'inline-flex',
+  alignItems: 'center',
+  fontWeight: 600,
+  
+  // --- UPDATED SIZE & FONT ---
+  fontSize: '0.9rem',          // Reduced font size (approx 12px)
+  fontFamily: 'Arial, sans-serif', 
+  // ---------------------------
+
+  lineHeight: 1,
+  userSelect: 'none',           // Often better for buttons/pills
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'scale(1.05)',   // Slightly subtler scale for smaller text
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+  },
+};
   return (  
     <Box  
       sx={{   
@@ -97,9 +134,30 @@ function ProductList() {
         <Container maxWidth="lg">  
           <Stack direction="row" justifyContent="space-between" alignItems="center">  
             <Stack direction="row" alignItems="center" spacing={2}>  
+            {/* ✅ UPDATED: Conditionally show Home icon for admin or Product icon for others */}
+            {isAdmin ? (
+              <Tooltip title="Go to Analytics">
+                <Avatar 
+                  onClick={handleHomeClick}
+                  sx={{ 
+                    bgcolor: 'primary.main', 
+                    variant: 'rounded',
+                    cursor: 'pointer',  // ✅ Pointer cursor for clickable feel
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >  
+                  <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
+                </Avatar>
+              </Tooltip>
+            ) : (
               <Avatar sx={{ bgcolor: 'primary.main', variant: 'rounded' }}>  
-                <Inventory2TwoToneIcon sx={{ color: 'white' }} />  
-              </Avatar>  
+                <Inventory2TwoToneIcon sx={{ color: 'white' }} />  {/* ✅ Product icon for non-admin */}
+              </Avatar>
+            )}  
               <Box>  
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1 }}>  
                   Product Manager  
@@ -110,10 +168,31 @@ function ProductList() {
               </Box>  
             </Stack>  
   
-            <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>  
-              <Chip label={`Total: ${products.length}`} size="small" />  
-              <Chip label={`Active: ${activeCount}`} size="small" color="success" variant="outlined" />  
-            </Stack>  
+            <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}> 
+              <Box sx={pillTagSx}>Total: {products.length}</Box>
+              <Box sx={pillTagSx}>Active: {activeCount}</Box>
+
+              <Tooltip title="Logout">
+                <Avatar 
+                  onClick={() => {
+                  localStorage.removeItem('loggedInUser'); // Clear user session
+                  navigate('/login');
+                }}
+                  sx={{ 
+                    bgcolor: '#f94949ff',
+                    variant: 'rounded',
+                    cursor: 'pointer',  // ✅ Pointer cursor for clickable feel
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >  
+                  <LogoutIcon sx={{ color: 'white' }} />
+                </Avatar>
+              </Tooltip>
+            </Stack>
           </Stack>  
         </Container>  
       </Box>  

@@ -10,8 +10,6 @@
 // We rename it as `Router` just for cleaner JSX usage
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // import { Toaster } from 'react-hot-toast';
-// Global CSS for the App component
-import './App.css';
 
 // -------------------- PUBLIC PAGES --------------------
 // These pages can be accessed without login

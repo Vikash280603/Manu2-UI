@@ -2,15 +2,32 @@
 
 import React, { useEffect, useState } from "react";
 import {
-Card, CardContent, Typography, Grid, Chip, Stack,
-LinearProgress, Box, Container, Paper, alpha, Divider,
-IconButton, CircularProgress
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Chip,
+  Stack,
+  LinearProgress,
+  Box,
+  Container,
+  Paper,
+  alpha,
+  Divider,
+  IconButton,
+  Avatar,
+  Tooltip, CircularProgress,Button
 } from "@mui/material";
 
 // ✅ CHANGE: Import API functions
 import { getAllProducts } from "../../product-bom/api/productApi";
 import { getAllQualityChecks } from "../../QualityControl/api/qualityCheckApi";
 
+// Import quality check retrieval function
+import { getQualityChecks } from "../entities/quality";
+import { getCurrentUser } from "../../../auth/authApi";
+
+// Material-UI Icons
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -19,7 +36,16 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ScienceIcon from '@mui/icons-material/Science';
+import LogoutIcon from '@mui/icons-material/Logout';
 
+import HomeIcon from "@mui/icons-material/Home";
+
+import { useNavigate } from "react-router-dom";
+
+// ============================================================
+// MAIN COMPONENT: QualityCheckList
+// REASON: Display all completed quality inspections with statistics
+// ============================================================
 const QualityCheckList = () => {
 const [quality, setQuality] = useState([]);
 const [products, setProducts] = useState([]);
@@ -27,6 +53,16 @@ const [products, setProducts] = useState([]);
 // ✅ NEW: Loading and error states
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState("");
+
+const navigate = useNavigate();
+// ✅ NEWLY ADDED - Get current user to check role
+const user = getCurrentUser();
+const isAdmin = user?.role === 'admin';
+
+// ✅ NEWLY ADDED - Handler for home icon click (admin only)
+const handleHomeClick = () => {
+  navigate('/analytics');
+};
 
 // ✅ CHANGE: Load from API
 useEffect(() => {
@@ -79,36 +115,118 @@ avgSuccessRate: quality.length > 0
 : 0
 };
 
-// ✅ NEW: Loading state
-if (loading && quality.length === 0) {
 return (
 <Box
 sx={{
 minHeight: "100vh",
 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center"
-}}
->
-<CircularProgress size={60} sx={{ color: 'white' }} />
-</Box>
-);
-}
-
-// Empty state
-if (!quality.length && !loading) {
-return (
-<Box
-sx={{
-minHeight: "100vh",
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center",
 py: 4
 }}
 >
+<Container maxWidth="xl">
+
+{/* HEADER */}
+<Paper
+elevation={0}
+sx={{
+background: "rgba(255, 255, 255, 0.95)",
+backdropFilter: "blur(10px)",
+borderRadius: 4,
+p: 4,
+mb: 3
+}}
+>
+<Stack
+direction={{ xs: "column", md: "row" }}
+justifyContent="space-between"
+alignItems={{ xs: "flex-start", md: "center" }}
+spacing={2}
+>
+<Stack direction="row" spacing={2} alignItems="center">
+{isAdmin ? (
+              <Tooltip title="Go to Analytics">
+                <Avatar 
+                  onClick={handleHomeClick}
+                  sx={{ 
+                    bgcolor: '#667eea', 
+                    variant: 'rounded',
+                    cursor: 'pointer',  // ✅ Pointer cursor for clickable feel
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >  
+                  <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
+                </Avatar>
+              </Tooltip>
+            ) : (
+              <Box
+                sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+                }}
+                >
+                <VerifiedIcon sx={{ color: "white", fontSize: 28 }} />
+                </Box>
+            )}
+
+<Box>
+<Typography variant="h4" fontWeight="700" color="text.primary">
+Quality Inspections
+</Typography>
+<Typography variant="body2" color="text.secondary">
+{quality.length} inspection records
+</Typography>
+</Box>
+</Stack>
+
+<Stack direction="row" spacing={2}>
+{/* ✅ NEW: Refresh button */}
+<IconButton
+onClick={handleRefresh}
+disabled={loading}
+sx={{
+background: alpha("#667eea", 0.1),
+color: "#667eea",
+"&:hover": { background: alpha("#667eea", 0.2) }
+}}
+>
+<RefreshIcon />
+</IconButton>
+
+<Button
+        variant=""
+        startIcon={<LogoutIcon />}
+        onClick={() => {
+          localStorage.removeItem('loggedInUser'); // Clear user session
+          navigate('/login');
+        }}
+        sx={{
+          bgcolor: '#f39c12',
+          borderRadius: 2,
+          textTransform: "none",
+          textColour: "white",
+          fontWeight: 600,
+          px: 3,
+          boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+          }}
+      >
+        Logout
+</Button>
+</Stack>
+</Stack>
+</Paper>
+
+{/* CONDITIONAL CONTENT - Empty state or Data */}
+{quality.length === 0 && !loading ? (
+// Empty state
 <Container maxWidth="sm">
 <Paper
 elevation={0}
@@ -144,88 +262,8 @@ Quality inspection records will appear here once work orders are completed and i
 </Typography>
 </Paper>
 </Container>
-</Box>
-);
-}
-
-return (
-<Box
-sx={{
-minHeight: "100vh",
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-py: 4
-}}
->
-<Container maxWidth="xl">
-
-{/* HEADER */}
-<Paper
-elevation={0}
-sx={{
-background: "rgba(255, 255, 255, 0.95)",
-backdropFilter: "blur(10px)",
-borderRadius: 4,
-p: 4,
-mb: 3
-}}
->
-<Stack
-direction={{ xs: "column", md: "row" }}
-justifyContent="space-between"
-alignItems={{ xs: "flex-start", md: "center" }}
-spacing={2}
->
-<Stack direction="row" spacing={2} alignItems="center">
-<Box
-sx={{
-width: 48,
-height: 48,
-borderRadius: 2,
-background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-display: "flex",
-alignItems: "center",
-justifyContent: "center"
-}}
->
-<VerifiedIcon sx={{ color: "white", fontSize: 28 }} />
-</Box>
-<Box>
-<Typography variant="h4" fontWeight="700" color="text.primary">
-Quality Inspections
-</Typography>
-<Typography variant="body2" color="text.secondary">
-{quality.length} inspection records
-</Typography>
-</Box>
-</Stack>
-
-<Stack direction="row" spacing={2}>
-{/* ✅ NEW: Refresh button */}
-<IconButton
-onClick={handleRefresh}
-disabled={loading}
-sx={{
-background: alpha("#667eea", 0.1),
-color: "#667eea",
-"&:hover": { background: alpha("#667eea", 0.2) }
-}}
->
-<RefreshIcon />
-</IconButton>
-
-<IconButton
-sx={{
-background: alpha("#667eea", 0.1),
-color: "#667eea",
-"&:hover": { background: alpha("#667eea", 0.2) }
-}}
->
-<FilterListIcon />
-</IconButton>
-</Stack>
-</Stack>
-</Paper>
-
+) : (
+<>
 {/* STATISTICS */}
 <Grid container spacing={2} mb={3}>
 
@@ -537,6 +575,8 @@ day: "numeric"
 );
 })}
 </Grid>
+</>
+)}
 </Container>
 </Box>
 );

@@ -15,10 +15,16 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import LogoutIcon from '@mui/icons-material/Logout';
+
+import HomeIcon from "@mui/icons-material/Home";
 
 // ✅ CHANGE: Import API functions + product API
 import { getAllInventories, adjustMaterialQuantity, updateMaterialThreshold } from "../../Inventory/api/inventoryApi";
 import { getAllProducts } from "../../product-bom/api/productApi";
+import { getCurrentUser } from "../../../auth/authApi";
+
+import { useNavigate } from "react-router-dom";
 
 const InventoryList = () => {
   const [inventory, setInventory] = useState([]);
@@ -28,6 +34,17 @@ const InventoryList = () => {
   // ✅ NEW: Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();  // ✅ NEWLY ADDED
+
+  // ✅ NEWLY ADDED - Get current user to check role
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+
+  // ✅ NEWLY ADDED - Handler for home icon click (admin only)
+  const handleHomeClick = () => {
+    navigate('/analytics');
+  };
 
   // ✅ CHANGE: Load from API instead of localStorage
   useEffect(() => {
@@ -171,19 +188,30 @@ const InventoryList = () => {
             spacing={2}
           >
             <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 2,
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}
-              >
-                <Inventory2OutlinedIcon sx={{ color: "white", fontSize: 28 }} />
-              </Box>
+            {/* ✅ UPDATED: Conditionally show Home icon for admin or Inventory icon for others */}
+            {isAdmin ? (
+              <Tooltip title="Go to Analytics">
+                <Avatar 
+                  onClick={handleHomeClick}
+                  sx={{ 
+                    bgcolor: '#667eea', 
+                    variant: 'rounded',
+                    cursor: 'pointer',  // ✅ Pointer cursor
+                    '&:hover': {  // ✅ Hover effect
+                      transform: 'scale(1.1)',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    },
+                    transition: 'all 0.3s ease',
+                  }}
+                >  
+                  <HomeIcon sx={{ color: 'white' }} />  {/* ✅ Home icon for admin */}
+                </Avatar>
+              </Tooltip>
+            ) : (
+              <Avatar sx={{ bgcolor: '#667eea', variant: 'rounded' }}>  
+                <Inventory2OutlinedIcon sx={{ color: 'white' }} />  {/* ✅ Inventory icon for non-admin */}
+              </Avatar>
+            )}
               <Box>
                 <Typography variant="h4" fontWeight="700" color="text.primary">
                   Inventory Management
@@ -192,6 +220,27 @@ const InventoryList = () => {
                   Track materials and restock levels
                 </Typography>
               </Box>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant=""
+                startIcon={<LogoutIcon />}
+                onClick={() => {
+                  localStorage.removeItem('loggedInUser'); // Clear user session
+                  navigate('/login');
+                }}
+                sx={{
+                  bgcolor: '#f39c12',
+                  borderRadius: 2,
+                  textTransform: "none",
+                  textColour: "white",
+                  fontWeight: 600,
+                  px: 3,
+                  boxShadow: "0 4px 20px rgba(102, 126, 234, 0.4)"
+                  }}
+              >
+                Logout
+              </Button>
             </Stack>
           </Stack>
         </Paper>
