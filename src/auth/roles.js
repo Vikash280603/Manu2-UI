@@ -38,11 +38,10 @@ export const roles = [
     value: "qc_manager"
   },
 
-
-  // -------------------- DASHBOARD USER --------------------
+  // -------------------- PRODUCTION SCHEDULER --------------------
   {
-    label: "Dashboard User",
-    value: "dashboard_user"
+    label: "Production Scheduler",
+    value: "production_scheduler"
   },
 
 
