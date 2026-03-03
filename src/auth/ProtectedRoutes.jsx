@@ -8,6 +8,7 @@
  
 import { Navigate } from 'react-router-dom';
 import { getCurrentUser, isTokenExpired, logout } from './authApi';
+import {getUserHomePage} from './roleConfig';
  
 // -------------------- PROTECTED ROUTE COMPONENT --------------------
 // ProtectedRoute is a WRAPPER component
@@ -18,7 +19,7 @@ import { getCurrentUser, isTokenExpired, logout } from './authApi';
 //   <Dashboard />
 // </ProtectedRoute>
  
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
  
   // -------------------- AUTH CHECK --------------------
   // Retrieve the logged-in user from localStorage using our helper function
@@ -40,6 +41,12 @@ const ProtectedRoute = ({ children }) => {
   if (isTokenExpired(user.token)) {
     logout(); // Clear localStorage
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // If user role is not in allowedRoles, redirect to their home page
+    const homePage = getUserHomePage(user.role);
+    return <Navigate to={homePage} replace />;
   }
  
   // -------------------- AUTHORIZED ACCESS --------------------
