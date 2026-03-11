@@ -293,7 +293,8 @@ export default function EditProduct({ open, handleClose, productId, onSaveSucces
               <Button  
                 variant="outlined"  
                 fullWidth  
-                onClick={() => navigate(`/products/${productId}/edit-bom`)}  
+                onClick={() => {if(formData.status=='ACTIVE') navigate(`/products/${productId}/edit-bom`)
+                else alert("Only ACTIVE products can be modified")}}  
                 startIcon={<BuildCircleOutlinedIcon />}  
                 endIcon={<ArrowForwardIosRoundedIcon />}  
                 sx={{ mt: 3 }}  

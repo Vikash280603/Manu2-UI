@@ -108,7 +108,13 @@ const CreateWorkOrder = () => {
     const loadProducts = async () => {
       try {
         const data = await getAllProducts();
-        setProducts(data);
+        //console.log(data);
+        
+        const filteredData = data.filter(
+                (item) => item?.status?.trim?.().toUpperCase() === "ACTIVE"
+              );
+        //console.log(filterData);
+        setProducts(filteredData);
       } catch (err) {
         console.error("Failed to load products:", err);
         setError(err.message);
